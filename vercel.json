@@ -1,13 +1,7 @@
 {
   "functions": {
     "api/query.py": {
-      "runtime": "python3.9"
+      "runtime": "vercel-python@4.3.1"
     }
-  },
-  "routes": [
-    {
-      "src": "/api/query",
-      "dest": "/api/query.py"
-    }
-  ]
+  }
 }
