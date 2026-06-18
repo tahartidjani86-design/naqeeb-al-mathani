@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0d1b2a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="نقيب المثاني">
+<title>نقيب المثاني</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg-deep:    #0d1b2a;
+    --bg-card:    #112236;
+    --bg-input:   #0a1628;
+    --gold:       #c9a84c;
+    --gold-light: #e8c97a;
+    --teal:       #2a9d8f;
+    --teal-light: #3ec9b9;
+    --text-main:  #e8e0d0;
+    --text-muted: #8a9ab0;
+    --border:     #1e3a5f;
+    --radius:     14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, #0a1628 0%, #112236 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .logo-ornament {
+    color: var(--gold);
+    font-size: 18px;
+    opacity: 0.7;
+  }
+
+  header h1 {
+    font-family: 'Amiri', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    letter-spacing: 1px;
+  }
+
+  header p {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    flex: 1;
+    padding: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ===== INPUT SECTION ===== */
+  .input-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .input-label {
+    font-size: 12px;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .input-label::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-family: 'Amiri', serif;
+    font-size: 17px;
+    line-height: 1.8;
+    padding: 12px 14px;
+    resize: none;
+    min-height: 90px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    border-color: var(--teal);
+  }
+
+  textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--teal) 0%, #1a7a6e 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ===== SPINNER ===== */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== RESULTS ===== */
+  #results { display: none; }
+
+  .engine-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .engine-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .engine-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .icon-istinbat { background: rgba(201,168,76,0.15); }
+  .icon-tawil    { background: rgba(42,157,143,0.15); }
+  .icon-istifsar { background: rgba(90,120,180,0.15); }
+
+  .engine-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .engine-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .chevron {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .engine-body {
+    padding: 0 16px 14px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .engine-body.open { display: block; }
+  .engine-header.open .chevron { transform: rotate(180deg); }
+
+  /* ===== DATA ROWS ===== */
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,58,95,0.5);
+    gap: 12px;
+  }
+
+  .data-row:last-child { border-bottom: none; }
+
+  .data-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 90px;
+  }
+
+  .data-value {
+    font-size: 13px;
+    color: var(--text-main);
+    text-align: right;
+    flex: 1;
+    line-height: 1.6;
+  }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 2px;
+  }
+
+  .badge-gold   { background: rgba(201,168,76,0.15); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
+  .badge-teal   { background: rgba(42,157,143,0.15); color: var(--teal-light); border: 1px solid rgba(42,157,143,0.3); }
+  .badge-blue   { background: rgba(90,120,180,0.15); color: #8aabf0; border: 1px solid rgba(90,120,180,0.3); }
+  .badge-red    { background: rgba(220,80,80,0.15);  color: #f08a8a; border: 1px solid rgba(220,80,80,0.3); }
+
+  /* ===== NAME CARD ===== */
+  .name-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+  }
+
+  .name-title {
+    font-family: 'Amiri', serif;
+    font-size: 20px;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .name-attr {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    line-height: 1.6;
+  }
+
+  .name-attr span {
+    color: var(--text-main);
+    font-size: 13px;
+  }
+
+  /* ===== ANSWER CARD ===== */
+  .answer-card {
+    background: var(--bg-input);
+    border-right: 3px solid var(--teal);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-main);
+  }
+
+  .answer-source {
+    font-size: 11px;
+    color: var(--gold);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  /* ===== ERROR ===== */
+  .error-box {
+    background: rgba(220,80,80,0.1);
+    border: 1px solid rgba(220,80,80,0.3);
+    border-radius: 10px;
+    padding: 14px;
+    color: #f08a8a;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 14px;
+    display: none;
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 13px; line-height: 1.7; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center;
+    padding: 14px;
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-line">
+    <span class="logo-ornament">❋</span>
+    <h1>نقيب المثاني</h1>
+    <span class="logo-ornament">❋</span>
+  </div>
+  <p>خوارزميات الوحي · استنباط · تأويل · استفسار</p>
+</header>
+
+<main>
+  <!-- Input -->
+  <div class="input-section">
+    <div class="input-label">أدخل النص</div>
+    <textarea id="queryInput" placeholder="أدخل آية كريمة أو نصاً شرعياً أو سؤالاً..." rows="3"></textarea>
+    <button class="btn-primary" id="searchBtn" onclick="doSearch()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">استنباط وتأويل</span>
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- استنباط -->
+    <div class="engine-card">
+      <div class="engine-header" onclick="toggleCard(this)">
+        <div class="engine-icon icon-istinbat">⚖️</div>
+        <div>
+          <div class="engine-title">محرك الاستنباط</div>
+          <div class="engine-subtitle">الأصل · الضابط · الحكم</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="engine-body open" id="istinbat-body">
+        <div style="padding-top:10px">جارٍ التحميل...</div>
+      </div>
+    </div>
+
+    <!-- تأويل -->
+    <div class="engine-card">
+      <div class="engine-header" onclick="toggleCard(this)">
+        <div class="engine-icon icon-tawil">🔮</div>
+        <div>
+          <div class="engine-title">محرك التأويل</div>
+          <div class="engine-subtitle">الأسماء الحسنى · الأروقة · التحلي</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="engine-body open" id="tawil-body">
+        <div style="padding-top:10px">جارٍ التحميل...</div>
+      </div>
+    </div>
+
+    <!-- استفسار -->
+    <div class="engine-card">
+      <div class="engine-header" onclick="toggleCard(this)">
+        <div class="engine-icon icon-istifsar">📚</div>
+        <div>
+          <div class="engine-title">محرك الاستفسار</div>
+          <div class="engine-subtitle">مطابقات المصادر</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="engine-body open" id="istifsar-body">
+        <div style="padding-top:10px">جارٍ التحميل...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <div class="icon">📖</div>
+    <p>أدخل آية كريمة أو نصاً شرعياً<br>ليبدأ المحرك في الاستنباط والتأويل</p>
+  </div>
+
+</main>
+
+<footer>نقيب المثاني © ١٤٤٧ هـ · محرك الاستنباط والتأويل</footer>
+
+<script>
+const API_URL = 'https://naqeeb-al-mathani-14xx.vercel.app/api/index';
+
+function toggleCard(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function setLoading(on) {
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  document.getElementById('btnText').textContent = on ? 'جارٍ التحليل...' : 'استنباط وتأويل';
+  document.getElementById('searchBtn').disabled = on;
+}
+
+function badge(text, type='gold') {
+  return `<span class="badge badge-${type}">${text}</span>`;
+}
+
+function renderIstinbat(data) {
+  const d = data.istinbat;
+  return `
+    <div class="data-row">
+      <div class="data-label">مصدر النص</div>
+      <div class="data-value">${badge(d.asl_source, d.asl_source === 'الكتاب' ? 'gold' : d.asl_source === 'السنة' ? 'teal' : 'blue')} <br><small style="color:var(--text-muted)">${d.asl_type}</small></div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">الفروع</div>
+      <div class="data-value">${(d.branch_context||[]).map(b => badge(b,'teal')).join(' ')}</div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">الضوابط</div>
+      <div class="data-value">${(d.dabit_rule||[]).map(b => badge(b,'blue')).join(' ')}</div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">الحكم النظري</div>
+      <div class="data-value">${badge(d.hukm_nazari, d.hukm_nazari==='واجب'?'gold':d.hukm_nazari==='مستحيل'?'red':'teal')}</div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">الحكم الضروري</div>
+      <div class="data-value">${badge(d.hukm_darori_illa, 'gold')}</div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">التخريج</div>
+      <div class="data-value" style="font-size:12px;color:var(--text-muted)">${d.sunnah_seerah_match||'—'}</div>
+    </div>
+  `;
+}
+
+function renderTawil(data) {
+  const d = data.tawil;
+  if (!d.names_found || d.names_found.length === 0) {
+    return '<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم يُكتشف اسم من الأسماء الحسنى في النص</div>';
+  }
+  return d.interpretation.map(n => `
+    <div class="name-card">
+      <div class="name-title">${n.asm_name}</div>
+      ${n.special_note ? `<div style="text-align:center;margin-bottom:8px">${badge(n.special_note,'gold')}</div>` : ''}
+      <div class="name-attr">المرتبة: <span>${n.martaba||'—'}</span></div>
+      <div class="name-attr">الرواق: <span>${n.rwaq||'—'}</span></div>
+      <div class="name-attr">الباب: <span>${n.bab||'—'}</span></div>
+      <div class="name-attr">الركن: <span>${n.rkn||'—'}</span></div>
+      <div class="name-attr" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        حكم التحلي: <span style="color:var(--gold-light)">${n.tahalli||'—'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderIstifsar(data) {
+  const d = data.istifsar;
+  if (!d.answers || d.answers.length === 0) {
+    return '<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم توجد مطابقات في المصادر</div>';
+  }
+  return d.answers.map(a => `
+    <div class="answer-card">
+      <div class="answer-source">${a.source}</div>
+      ${a.text}
+    </div>
+  `).join('');
+}
+
+async function doSearch() {
+  const query = document.getElementById('queryInput').value.trim();
+  if (!query) return;
+
+  setLoading(true);
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+
+    if (!res.ok) throw new Error(`خطأ في الخادم: ${res.status}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    document.getElementById('istinbat-body').innerHTML = renderIstinbat(data);
+    document.getElementById('tawil-body').innerHTML = renderTawil(data);
+    document.getElementById('istifsar-body').innerHTML = renderIstifsar(data);
+
+    document.getElementById('results').style.display = 'block';
+
+  } catch (err) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + err.message;
+    box.style.display = 'block';
+    document.getElementById('emptyState').style.display = 'block';
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Enter key support
+document.getElementById('queryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) doSearch();
+});
+</script>
+</body>
+</html>
