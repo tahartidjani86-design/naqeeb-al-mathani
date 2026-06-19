@@ -562,7 +562,7 @@ async def salsal_grand_query(request: Request):
         sb = get_supabase()
         return JSONResponse({
             "query":    user_query,
-            "استنباط": istinbat_engine(user_query, sb),
+            "istinbat": istinbat_engine(user_query, sb),
             "تأويل":   tawil_engine(user_query, sb),
             "استفسار": istifsar_engine(user_query, sb)
         })
