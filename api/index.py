@@ -468,6 +468,7 @@ def istinbat_engine(q, sb):
     return {
         "الأصل":              asl,
         "الأصول":             " و ".join(usul),
+        "asl_source":         asl_source,
         "الفروع":             branches,
         "الشعبة":             shuba,
         "الضابط":             dabits,
