@@ -271,7 +271,7 @@ def get_special(name):
 def search_quran(q, sb):
     """بحث جزئي في القرآن الكريم"""
     try:
-        resp = sb.table("quran_verses").select("surah,ayah,text").execute()
+        resp = sb.table("quran").select("surah,ayah,text").execute()
         qc = clean(q)
         words = [w for w in qc.split() if len(w) > 3]
         matches = []
@@ -293,9 +293,7 @@ def search_quran(q, sb):
 
 def search_hadith(q, sb):
     """البحث في أحاديث الجداول المتاحة"""
-    hadith_tables = ["sahih_bukhari","sahih_muslim","sunan_abudawud",
-                     "sunan_tirmidhi","sunan_nasai","sunan_ibnmajah",
-                     "sunan_darimi","muwataa_malik","musnad_ahmad"]
+    hadith_tables = ["hadith", "seerah_halabiyya", "seerah_ibn_hish", "seerah_tashrii"]
     qc = clean(q)
     words = [w for w in qc.split() if len(w) > 3][:5]
     results = []
@@ -314,7 +312,7 @@ def search_hadith(q, sb):
 
 def search_manjam(q, sb):
     try:
-        resp = sb.table("manjam_usul").select("content").execute()
+        resp = sb.table("manjam_al_usul").select("content").execute()
         qc = clean(q)
         for row in resp.data:
             if qc in clean(str(row.get("content",""))):
@@ -324,7 +322,7 @@ def search_manjam(q, sb):
 
 def search_idah(q, sb):
     try:
-        resp = sb.table("idah_muhayid").select("content").execute()
+        resp = sb.table("idah_al_muhayid").select("content").execute()
         qc = clean(q)
         for row in resp.data:
             if qc in clean(str(row.get("content",""))):
@@ -468,7 +466,6 @@ def istinbat_engine(q, sb):
     return {
         "الأصل":              asl,
         "الأصول":             " و ".join(usul),
-        "asl_source":         asl_source,
         "الفروع":             branches,
         "الشعبة":             shuba,
         "الضابط":             dabits,
