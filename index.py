@@ -518,12 +518,12 @@ def tawil_engine(q, sb):
         return {
             "الأسماء_المكتشفة": [],
             "التأويل": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
-            "خاتمة": KHATIMA
+            "KHATIMA": KHATIMA
         }
     return {
         "الأسماء_المكتشفة": [d["الاسم"] for d in detected],
-        "التأويل": detected,
-        "خاتمة": KHATIMA
+        "tawil": detected,
+        "KHATIMA": KHATIMA
     }
 
 # ============================================================
@@ -563,8 +563,8 @@ async def salsal_grand_query(request: Request):
         return JSONResponse({
             "query":    user_query,
             "istinbat": istinbat_engine(user_query, sb),
-            "تأويل":   tawil_engine(user_query, sb),
-            "استفسار": istifsar_engine(user_query, sb)
+            "tawil":   tawil_engine(user_query, sb),
+            "istifsar": istifsar_engine(user_query, sb)
         })
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
