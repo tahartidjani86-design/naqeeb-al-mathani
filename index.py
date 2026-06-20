@@ -466,14 +466,15 @@ def istinbat_engine(q, sb):
     if hadith:
         hadith_txt = "أحاديث متصلة:\n" + "\n".join(f"• {h['source']}: {h['text'][:120]}..." for h in hadith)
     return {
-        "asl":              asl,
-        "usul":             "usul".join(usul),
-        "branches":             branches,
+        "asl":         asl,
+        "asl_source":  asl_source,
+        "usul":     ",".join(usul),
+        "branch_context":             branches,
         "shuba":             shuba,
-        "dabits":             dabits,
-        "nazari":       nazari,
-        "darori":      darori,
-        "hadith_tex":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
+        "dabit_rule":             dabits,
+        "hukm_nazari":       nazari,
+        "hukm_darori_illa":      darori,
+        "related_hadith":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
         "khatima":              KHATIMA
     }
 
