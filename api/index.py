@@ -305,11 +305,11 @@ def search_hadith(q, sb):
         try:
             resp = sb.table(table).selresp = sb.table(table).select("text_ar,source").limit(300).execute()ect("text,source").limit(300).execute()
             for row in resp.data:
-                rc = clean(str(row.get("text","")))
+                rc = clean(str(row.getrc = clean(str(row.get("text_ar","")))("text","")))
                 score = sum(1 for w in words if w in rc)
                 if score >= 2:
                     results.append({"source": row.get("source", table),
-                                    "text": str(row.get("text",""))[:200], "score": score})
+                                    "text":"text": str(row.get("text_ar",""))[:200], "score": score}) str(row.get("text",""))[:200], "score": score})
         except: pass
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:3]
