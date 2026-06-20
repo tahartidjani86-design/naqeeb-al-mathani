@@ -317,8 +317,8 @@ def search_manjam(q, sb):
         resp = sb.table("manjam_usul").select("content").execute()
         qc = clean(q)
         for row in resp.data:
-            if qc in clean(str(row.get("content",""))):
-                return str(row.get("content",""))[:300]
+            if qc in clean(str(row.get("text_ar",""))):
+               return str(row.get("text_ar",""))[:300]
     except: pass
     return ""
 
