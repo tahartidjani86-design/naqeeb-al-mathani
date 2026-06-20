@@ -494,12 +494,12 @@ def tawil_engine(q, sb):
         rwaq = get_rwaq_info(name_orig)
         if rwaq:
             entry = {
-                "الاسم":              name_orig,
-                "المرتبة":            rwaq["martaba"],
-                "الرواق":             rwaq["rwaq"],
-                "الباب":              rwaq["bab"],
-                "الركن":              rwaq["rkn"],
-                "حكم_التحلي_التخلي": get_tahalli(name_orig),
+                "asm_name":              name_orig,
+                "martaba":            rwaq["martaba"],
+                "rwaq":             rwaq["rwaq"],
+                "اbab":              rwaq["bab"],
+                "rkn":              rwaq["rkn"],
+                "special_note": get_tahalli(name_orig),
             }
             sp = get_special(name_orig)
             if sp: entry["ملاحظة_خاصة"] = sp
@@ -517,14 +517,14 @@ def tawil_engine(q, sb):
 
     if not detected:
         return {
-            "الأسماء_المكتشفة": [],
-            "tawil": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
-            "KHATIMA": KHATIMA
+           "names_found": [],
+            "interpretation": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
+            "khatima": KHATIMA
         }
     return {
-        "الأسماء_المكتشفة": [d["الاسم"] for d in detected],
-        "tawil": detected,
-        "KHATIMA": KHATIMA
+        "names_found": [d["asm_name"] for d in detected],
+        "interpretation": detected,
+        "khatima": KHATIMA
     }
 
 # ============================================================
