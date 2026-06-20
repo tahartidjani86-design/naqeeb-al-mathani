@@ -303,7 +303,7 @@ def search_hadith(q, sb):
     results = []
     for table in hadith_tables:
         try:
-            resp = sb.table(table).select("text,source").limit(300).execute()
+            resp = sb.table(table).selresp = sb.table(table).select("text_ar,source").limit(300).execute()ect("text,source").limit(300).execute()
             for row in resp.data:
                 rc = clean(str(row.get("text","")))
                 score = sum(1 for w in words if w in rc)
