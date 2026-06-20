@@ -271,31 +271,33 @@ def get_special(name):
 def search_quran(q, sb):
     """بحث جزئي في القرآن الكريم"""
     try:
-        resp = sb.table("quran_verses").select("surah,ayah,text").execute()
+        resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
         qc = clean(q)
         words = [w for w in qc.split() if len(w) > 3]
         matches = []
         for row in resp.data:
-            rc = clean(str(row.get("text","")))
+            rc = clean(str(row.get("text_uthmani","")))
             score = sum(1 for w in words if w in rc)
             if score >= 1 or qc in rc:
                 matches.append({
-                    "surah": row.get("surah",""), "ayah": row.get("ayah",""),
-                    "text": row.get("text",""), "score": score
+                    "sura_num":  row.get("sura_num",""),
+                    "aya_num":   row.get("aya_num",""),
+                    "sura_name": row.get("sura_name",""),
+                    "text":      row.get("text_uthmani",""),
+                    "score":     score
                 })
         if matches:
             matches.sort(key=lambda x: x["score"], reverse=True)
             b = matches[0]
             return {"found": True, "source": "القرآن الكريم",
-                    "reference": f"سورة {b['surah']} — الآية {b['ayah']}", "text": b["text"]}
+                    "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
+                    "text": b["text"]}
     except: pass
     return {"found": False}
 
 def search_hadith(q, sb):
     """البحث في أحاديث الجداول المتاحة"""
-    hadith_tables = ["sahih_bukhari","sahih_muslim","sunan_abudawud",
-                     "sunan_tirmidhi","sunan_nasai","sunan_ibnmajah",
-                     "sunan_darimi","muwataa_malik","musnad_ahmad"]
+    hadith_tables = ["hadith", "seerah_halabiyya", "seerah_ibn_hish", "seerah_tashrii"]
     qc = clean(q)
     words = [w for w in qc.split() if len(w) > 3][:5]
     results = []
@@ -314,21 +316,21 @@ def search_hadith(q, sb):
 
 def search_manjam(q, sb):
     try:
-        resp = sb.table("manjam_usul").select("content").execute()
+        resp = sb.table("manjam_al_usul").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
             if qc in clean(str(row.get("text_ar",""))):
-               return str(row.get("text_ar",""))[:300]
+                return str(row.get("text_ar",""))[:300]
     except: pass
     return ""
 
 def search_idah(q, sb):
     try:
-        resp = sb.table("idah_muhayid").select("content").execute()
+        resp = sb.table("idah_al_muhayid").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
-            if qc in clean(str(row.get("content",""))):
-                return str(row.get("content",""))[:300]
+            if qc in clean(str(row.get("text_ar",""))):
+                return str(row.get("text_ar",""))[:300]
     except: pass
     return ""
 
@@ -466,16 +468,15 @@ def istinbat_engine(q, sb):
     if hadith:
         hadith_txt = "أحاديث متصلة:\n" + "\n".join(f"• {h['source']}: {h['text'][:120]}..." for h in hadith)
     return {
-        "asl":         asl,
-        "asl_source":  asl_source,
-        "usul":     ",".join(usul),
-        "branch_context":             branches,
-        "shuba":             shuba,
-        "dabit_rule":             dabits,
-        "hukm_nazari":       nazari,
-        "hukm_darori_illa":      darori,
-        "related_hadith":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
-        "khatima":              KHATIMA
+        "الأصل":              asl,
+        "الأصول":             " و ".join(usul),
+        "الفروع":             branches,
+        "الشعبة":             shuba,
+        "الضابط":             dabits,
+        "الحكم_النظري":       nazari,
+        "الحكم_الضروري":      darori,
+        "الأحاديث_المتصلة":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
+        "خاتمة":              KHATIMA
     }
 
 # ============================================================
@@ -494,12 +495,12 @@ def tawil_engine(q, sb):
         rwaq = get_rwaq_info(name_orig)
         if rwaq:
             entry = {
-                "asm_name":              name_orig,
-                "martaba":            rwaq["martaba"],
-                "rwaq":             rwaq["rwaq"],
-                "bab":              rwaq["bab"],
-                "rkn":              rwaq["rkn"],
-                "special_note": get_tahalli(name_orig),
+                "الاسم":              name_orig,
+                "المرتبة":            rwaq["martaba"],
+                "الرواق":             rwaq["rwaq"],
+                "الباب":              rwaq["bab"],
+                "الركن":              rwaq["rkn"],
+                "حكم_التحلي_التخلي": get_tahalli(name_orig),
             }
             sp = get_special(name_orig)
             if sp: entry["ملاحظة_خاصة"] = sp
@@ -517,14 +518,14 @@ def tawil_engine(q, sb):
 
     if not detected:
         return {
-           "names_found": [],
-            "interpretation": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
-            "khatima": KHATIMA
+            "الأسماء_المكتشفة": [],
+            "التأويل": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
+            "خاتمة": KHATIMA
         }
     return {
-        "names_found": [d["asm_name"] for d in detected],
-        "interpretation": detected,
-        "khatima": KHATIMA
+        "الأسماء_المكتشفة": [d["الاسم"] for d in detected],
+        "التأويل": detected,
+        "خاتمة": KHATIMA
     }
 
 # ============================================================
@@ -563,9 +564,9 @@ async def salsal_grand_query(request: Request):
         sb = get_supabase()
         return JSONResponse({
             "query":    user_query,
-            "istinbat": istinbat_engine(user_query, sb),
-            "tawil":   tawil_engine(user_query, sb),
-            "istifsar": istifsar_engine(user_query, sb)
+            "استنباط": istinbat_engine(user_query, sb),
+            "تأويل":   tawil_engine(user_query, sb),
+            "استفسار": istifsar_engine(user_query, sb)
         })
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
