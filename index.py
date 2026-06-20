@@ -497,7 +497,7 @@ def tawil_engine(q, sb):
                 "asm_name":              name_orig,
                 "martaba":            rwaq["martaba"],
                 "rwaq":             rwaq["rwaq"],
-                "اbab":              rwaq["bab"],
+                "bab":              rwaq["bab"],
                 "rkn":              rwaq["rkn"],
                 "special_note": get_tahalli(name_orig),
             }
