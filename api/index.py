@@ -271,23 +271,27 @@ def get_special(name):
 def search_quran(q, sb):
     """بحث جزئي في القرآن الكريم"""
     try:
-        resp = sb.table("quran").select("surah,ayah,text").execute()
+        resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
         qc = clean(q)
         words = [w for w in qc.split() if len(w) > 3]
         matches = []
         for row in resp.data:
-            rc = clean(str(row.get("text","")))
+            rc = clean(str(row.get("text_uthmani","")))
             score = sum(1 for w in words if w in rc)
             if score >= 1 or qc in rc:
                 matches.append({
-                    "surah": row.get("surah",""), "ayah": row.get("ayah",""),
-                    "text": row.get("text",""), "score": score
+                    "sura_num":  row.get("sura_num",""),
+                    "aya_num":   row.get("aya_num",""),
+                    "sura_name": row.get("sura_name",""),
+                    "text":      row.get("text_uthmani",""),
+                    "score":     score
                 })
         if matches:
             matches.sort(key=lambda x: x["score"], reverse=True)
             b = matches[0]
             return {"found": True, "source": "القرآن الكريم",
-                    "reference": f"سورة {b['surah']} — الآية {b['ayah']}", "text": b["text"]}
+                    "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
+                    "text": b["text"]}
     except: pass
     return {"found": False}
 
@@ -312,21 +316,21 @@ def search_hadith(q, sb):
 
 def search_manjam(q, sb):
     try:
-        resp = sb.table("manjam_al_usul").select("content").execute()
+        resp = sb.table("manjam_al_usul").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
-            if qc in clean(str(row.get("content",""))):
-                return str(row.get("content",""))[:300]
+            if qc in clean(str(row.get("text_ar",""))):
+                return str(row.get("text_ar",""))[:300]
     except: pass
     return ""
 
 def search_idah(q, sb):
     try:
-        resp = sb.table("idah_al_muhayid").select("content").execute()
+        resp = sb.table("idah_al_muhayid").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
-            if qc in clean(str(row.get("content",""))):
-                return str(row.get("content",""))[:300]
+            if qc in clean(str(row.get("text_ar",""))):
+                return str(row.get("text_ar",""))[:300]
     except: pass
     return ""
 
