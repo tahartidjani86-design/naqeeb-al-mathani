@@ -475,7 +475,7 @@ function renderIstinbat(data) {
     </div>
     <div class="data-row">
       <div class="data-label">الشعبة</div>
-      <div class="data-value">${(d.shuba||[]).map(b => badge(b,'teal')).join(' ')}</div>
+      <div class="data-value">${d.shuba ? badge(d.shuba,'teal'):'_'}</div>
     </div>
       <div class="data-row">
       <div class="data-label">الضوابط</div>
