@@ -474,6 +474,10 @@ function renderIstinbat(data) {
       <div class="data-value">${(d.branch_context||[]).map(b => badge(b,'teal')).join(' ')}</div>
     </div>
     <div class="data-row">
+      <div class="data-label">الشعبة</div>
+      <div class="data-value">${(d.shuba||[]).map(b => badge(b,'teal')).join(' ')}</div>
+    </div>
+      <div class="data-row">
       <div class="data-label">الضوابط</div>
       <div class="data-value">${(d.dabit_rule||[]).map(b => badge(b,'blue')).join(' ')}</div>
     </div>
