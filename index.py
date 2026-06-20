@@ -466,15 +466,15 @@ def istinbat_engine(q, sb):
     if hadith:
         hadith_txt = "أحاديث متصلة:\n" + "\n".join(f"• {h['source']}: {h['text'][:120]}..." for h in hadith)
     return {
-        "الأصل":              asl,
-        "الأصول":             " و ".join(usul),
-        "الفروع":             branches,
-        "الشعبة":             shuba,
-        "الضابط":             dabits,
-        "الحكم_النظري":       nazari,
-        "الحكم_الضروري":      darori,
-        "الأحاديث_المتصلة":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
-        "خاتمة":              KHATIMA
+        "asl":              asl,
+        "usul":             "usul".join(usul),
+        "branches":             branches,
+        "shuba":             shuba,
+        "dabits":             dabits,
+        "nazari":       nazari,
+        "darori":      darori,
+        "hadith_tex":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
+        "khatima":              KHATIMA
     }
 
 # ============================================================
@@ -517,7 +517,7 @@ def tawil_engine(q, sb):
     if not detected:
         return {
             "الأسماء_المكتشفة": [],
-            "التأويل": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
+            "tawil": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
             "KHATIMA": KHATIMA
         }
     return {
