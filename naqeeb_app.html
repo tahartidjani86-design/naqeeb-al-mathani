@@ -463,70 +463,92 @@ function badge(text, type='gold') {
 }
 
 function renderIstinbat(data) {
-  const d = data.istinbat;
+  const d = data['استنباط'] || data.istinbat || {};
+  const asl     = d['الأصل']            || d.asl_type    || '—';
+  const usul    = d['الأصول']           || d.asl_source  || '—';
+  const furoo   = d['الفروع']           || d.branch_context || [];
+  const shuba   = d['الشعبة']           || '—';
+  const dabit   = d['الضابط']           || d.dabit_rule  || [];
+  const nazari  = d['الحكم_النظري']     || d.hukm_nazari || '—';
+  const darori  = d['الحكم_الضروري']    || d.hukm_darori_illa || '—';
+  const hadith  = d['الأحاديث_المتصلة'] || d.sunnah_seerah_match || '—';
+  const khatima = d['خاتمة']            || '';
+  const usulColor = usul.includes('الكتاب') ? 'gold' : usul.includes('السنة') ? 'teal' : 'blue';
   return `
     <div class="data-row">
-      <div class="data-label">مصدر النص</div>
-      <div class="data-value">${badge(d.asl_source, d.asl_source === 'الكتاب' ? 'gold' : d.asl_source === 'السنة' ? 'teal' : 'blue')} <br><small style="color:var(--text-muted)">${d.asl_type}</small></div>
+      <div class="data-label">الأصل</div>
+      <div class="data-value" style="font-size:13px">${asl}</div>
+    </div>
+    <div class="data-row">
+      <div class="data-label">الأصول</div>
+      <div class="data-value">${badge(usul, usulColor)}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الفروع</div>
-      <div class="data-value">${(d.branch_context||[]).map(b => badge(b,'teal')).join(' ')}</div>
+      <div class="data-value">${(Array.isArray(furoo)?furoo:[furoo]).map(b => badge(b,'teal')).join(' ')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الشعبة</div>
-      <div class="data-value">${d.shuba ? badge(d.shuba,'teal'):'_'}</div>
+      <div class="data-value">${badge(shuba,'blue')}</div>
     </div>
-      <div class="data-row">
-      <div class="data-label">الضوابط</div>
-      <div class="data-value">${(d.dabit_rule||[]).map(b => badge(b,'blue')).join(' ')}</div>
+    <div class="data-row">
+      <div class="data-label">الضابط</div>
+      <div class="data-value">${(Array.isArray(dabit)?dabit:[dabit]).map(b => badge(b,'blue')).join(' ')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الحكم النظري</div>
-      <div class="data-value">${badge(d.hukm_nazari, d.hukm_nazari==='واجب'?'gold':d.hukm_nazari==='مستحيل'?'red':'teal')}</div>
+      <div class="data-value">${badge(nazari, nazari==='واجب'?'gold':nazari==='مستحيل'?'red':'teal')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الحكم الضروري</div>
-      <div class="data-value">${badge(d.hukm_darori_illa, 'gold')}</div>
+      <div class="data-value">${badge(darori,'gold')}</div>
     </div>
     <div class="data-row">
-      <div class="data-label">التخريج</div>
-      <div class="data-value" style="font-size:12px;color:var(--text-muted)">${d.sunnah_seerah_match||'—'}</div>
+      <div class="data-label">الأحاديث المتصلة</div>
+      <div class="data-value" style="font-size:12px;color:var(--text-muted);white-space:pre-line">${hadith}</div>
     </div>
+    <div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>
   `;
 }
 
 function renderTawil(data) {
-  const d = data.tawil;
-  if (!d.names_found || d.names_found.length === 0) {
-    return '<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم يُكتشف اسم من الأسماء الحسنى في النص</div>';
+  const d = data['تأويل'] || data.tawil || {};
+  const names = d['الأسماء_المكتشفة'] || d.names_found || [];
+  const interp = d['التأويل'] || d.interpretation || [];
+  const khatima = d['خاتمة'] || '';
+  if (!names.length) {
+    return `<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم يُكتشف اسم من الأسماء الحسنى في النص</div>`;
   }
-  return d.interpretation.map(n => `
+  const cards = (Array.isArray(interp) ? interp : []).map(n => `
     <div class="name-card">
-      <div class="name-title">${n.asm_name}</div>
-      ${n.special_note ? `<div style="text-align:center;margin-bottom:8px">${badge(n.special_note,'gold')}</div>` : ''}
-      <div class="name-attr">المرتبة: <span>${n.martaba||'—'}</span></div>
-      <div class="name-attr">الرواق: <span>${n.rwaq||'—'}</span></div>
-      <div class="name-attr">الباب: <span>${n.bab||'—'}</span></div>
-      <div class="name-attr">الركن: <span>${n.rkn||'—'}</span></div>
+      <div class="name-title">${n['الاسم']||n.asm_name||''}</div>
+      ${n['ملاحظة_خاصة'] ? `<div style="text-align:center;margin-bottom:8px">${badge(n['ملاحظة_خاصة'],'gold')}</div>` : ''}
+      <div class="name-attr">المرتبة: <span>${n['المرتبة']||n.martaba||'—'}</span></div>
+      <div class="name-attr">الرواق: <span>${n['الرواق']||n.rwaq||'—'}</span></div>
+      <div class="name-attr">الباب: <span>${n['الباب']||n.bab||'—'}</span></div>
+      <div class="name-attr">الركن: <span>${n['الركن']||n.rkn||'—'}</span></div>
       <div class="name-attr" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-        حكم التحلي: <span style="color:var(--gold-light)">${n.tahalli||'—'}</span>
+        حكم التحلي/التخلي: <span style="color:var(--gold-light)">${n['حكم_التحلي_التخلي']||n.tahalli||'—'}</span>
       </div>
     </div>
   `).join('');
+  return cards + `<div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>`;
 }
 
 function renderIstifsar(data) {
-  const d = data.istifsar;
-  if (!d.answers || d.answers.length === 0) {
+  const d = data['استفسار'] || data.istifsar || {};
+  const answers = d['الإجابات'] || d.answers || [];
+  const khatima = d['خاتمة'] || '';
+  if (!answers.length) {
     return '<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم توجد مطابقات في المصادر</div>';
   }
-  return d.answers.map(a => `
+  const cards = answers.map(a => `
     <div class="answer-card">
-      <div class="answer-source">${a.source}</div>
-      ${a.text}
+      <div class="answer-source">${a['المصدر']||a.source||''}</div>
+      ${a['النص']||a.text||''}
     </div>
   `).join('');
+  return cards + `<div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>`;
 }
 
 async function doSearch() {
