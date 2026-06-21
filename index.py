@@ -422,8 +422,10 @@ def extract_shuba(text, branches):
     return 'المحور العام'
 
 def classify_dabit(text, asl_source):
+    """تعيين الضابط مع التعليل — لماذا اختاره النظام"""
     t = clean(text)
     dabits = []
+    reasons = []
     cmd = ['افعلوا','اقيموا','اتوا','اطيعوا','أمر','كتب','فرض','أوجب','يجب','صلوا','آتوا','ارجعوا']
     prh = ['نهي','حرم','لا تقربوا','لا تفعلوا','لا يحل','لا تقتلوا']
     mujmal   = ['لا يكلف','الا وسعها','مجمل','مبهم','لا يكلف الله']
@@ -433,21 +435,51 @@ def classify_dabit(text, asl_source):
     has_cmd   = any(k in t for k in cmd)
     has_prh   = any(k in t for k in prh)
 
-    if any(k in t for k in mujmal):
+    # كشف الكلمة المسببة لتضمينها في التعليل
+    def found_kw(kws):
+        for k in kws:
+            if k in t: return k
+        return ""
+
+    if found_kw(mujmal):
         dabits.append("لفظ مجمل")
-    elif any(k in t for k in mutafawit) and not has_cmd:
+        reasons.append(f"الضابط «لفظ مجمل»: لاحتواء النص على صيغة إجمال (مثل «{found_kw(mujmal)}»)، والمجمل حكمه الجواز كما في المنهجية.")
+    elif found_kw(mutafawit) and not has_cmd:
         dabits.append("لفظ متفاوت")
+        reasons.append(f"الضابط «لفظ متفاوت»: لورود صيغة تحتمل أكثر من معنى (مثل «{found_kw(mutafawit)}»)، فيُرجَّح المعنى الأنسب وحكمه الجواز.")
     elif has_asma or has_cmd or has_prh:
         dabits.append("لفظ محكم")
+        if has_cmd:
+            reasons.append(f"الضابط «لفظ محكم»: لاحتواء النص على أمر صريح (مثل «{found_kw(cmd)}»). والمحكم من الكتاب أمره واجب، ومن السنة أمره مندوب.")
+        elif has_prh:
+            reasons.append(f"الضابط «لفظ محكم»: لاحتواء النص على نهي صريح (مثل «{found_kw(prh)}»). والمحكم من الكتاب نهيه واجب الاجتناب، ومن السنة يُجتنب.")
+        else:
+            reasons.append("الضابط «لفظ محكم»: لورود اسم من أسماء الله الحسنى المحكمة في الدلالة، وإن لم يكن فيه أمر ولا نهي فالنص لا يحمل حكماً.")
 
-    if any(k in t for k in ['قياس','علة','شبه']): dabits.append("القياس")
-    if any(k in t for k in ['أجمع','إجماع','اتفق','السلف','الصحابه']): dabits.append("الإجماع")
-    if any(k in t for k in ['نسخ','ناسخ','منسوخ']): dabits.append("النسخ")
-    if any(k in t for k in ['فعل النبي','تحنيك','رفع اليدين','قلب العبائه']): dabits.append("الفعل")
-    if any(k in t for k in ['أقر','إقرار','سكت عن']): dabits.append("الإقرار")
-    if any(k in t for k in ['سبب','سببيه','بسبب']): dabits.append("السبب")
+    if found_kw(['قياس','علة','شبه']):
+        dabits.append("القياس")
+        reasons.append("الضابط «القياس»: لاحتواء النص على إشارة للقياس. فإن كان قياس شبه فحكمه واجب أو جائز أو مستحيل، وإن كان قياس علة فحكمه الآداء أو القضاء أو الإعادة أو الرخصة أو العزيمة.")
+    if found_kw(['أجمع','إجماع','اتفق','السلف','الصحابه']):
+        dabits.append("الإجماع")
+        reasons.append("الضابط «الإجماع»: لورود ما يدل على اتفاق. وحكمه الوجوب سواء كان إجماعاً من نصوص الكتاب أو عن السلف من الصحابة.")
+    if found_kw(['نسخ','ناسخ','منسوخ']):
+        dabits.append("النسخ")
+        reasons.append("الضابط «النسخ»: لورود ما يدل على نسخ حكم سابق. وحكمه واجب كما في المنهجية.")
+    if found_kw(['فعل النبي','تحنيك','رفع اليدين','قلب العبائه']):
+        dabits.append("الفعل")
+        reasons.append("الضابط «الفعل»: لاحتواء النص على فعل نبوي. فالفعل المستقل حكمه الاستحباب، والمجمل بواجب حكمه واجب، والمجمل بمندوب حكمه المندوب.")
+    if found_kw(['أقر','إقرار','سكت عن']):
+        dabits.append("الإقرار")
+        reasons.append("الضابط «الإقرار»: لورود ما يدل على إقرار النبي ﷺ. وحكمه الجواز سواء كان من الكتاب أو من السنة.")
+    if found_kw(['سبب','سببيه','بسبب']):
+        dabits.append("السبب")
+        reasons.append("الضابط «السبب»: لورود ما يدل على سبب. وحكمه واجب كما في المنهجية.")
 
-    return dabits or ["لفظ متفاوت"]
+    if not dabits:
+        dabits = ["لفظ متفاوت"]
+        reasons.append("الضابط «لفظ متفاوت»: لعدم ورود صيغة محكمة أو مجملة صريحة، فيُرجَّح المعنى الأنسب وحكمه الجواز.")
+
+    return dabits, reasons
 
 def extract_hukm_nazari(text, dabits, branches, asl_source):
     t = clean(text)
@@ -537,10 +569,23 @@ def istinbat_engine(q, sb):
     branches = classify_branch(q)
     shuba    = extract_shuba(q, branches)
 
-    # ٤. الضابط والأحكام
-    dabits  = classify_dabit(q, asl_source)
+    # ٤. الضابط والأحكام (مع التعليل)
+    dabits, dabit_reasons = classify_dabit(q, asl_source)
     nazari  = extract_hukm_nazari(q, dabits, branches, asl_source)
     darori  = extract_hukm_darori(q, nazari, dabits, branches, asl_source)
+
+    # تعليل الأحكام
+    hukm_reason = ""
+    if nazari == "واجب":
+        hukm_reason = "الحكم النظري «واجب» لأن النص محكم من الكتاب فيه أمر صريح."
+    elif nazari == "مندوب":
+        hukm_reason = "الحكم النظري «مندوب» لأن النص محكم من السنة فيه أمر."
+    elif nazari == "مستحيل":
+        hukm_reason = "الحكم النظري «مستحيل» (أي نهي) لورود النهي الصريح في النص."
+    elif nazari == "جائز":
+        hukm_reason = "الحكم النظري «جائز» لأن الضابط مجمل أو متفاوت يحتمل المعاني."
+    elif nazari == "النص لا يحمل حكماً":
+        hukm_reason = "النص محكم لكن ليس فيه أمر ولا نهي ولا جواز، فلا يحمل حكماً."
 
     # ٥. الأحاديث المتصلة
     hadith_display = ""
@@ -566,7 +611,9 @@ def istinbat_engine(q, sb):
         "الفروع":             branches,
         "الشعبة":             shuba,
         "الضابط":             dabits,
+        "تعليل_الضابط":       dabit_reasons,
         "الحكم_النظري":       nazari,
+        "تعليل_الحكم":        hukm_reason,
         "الحكم_الضروري":      darori,
         "الأحاديث_المتصلة":   hadith_display or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
         "التخريج":            takhreej,
