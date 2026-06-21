@@ -302,45 +302,86 @@ def search_quran(q, sb):
     except: pass
     return {"found": False}
 
+def clean_matn(text):
+    """تنظيف المتن من سلسلة الإسناد وإبقاء نص الحديث"""
+    if not text: return ""
+    # حذف رقم الحديث في البداية
+    text = re.sub(r'^["\d\s,]+', '', text).strip()
+    # البحث عن بداية المتن بعد الإسناد
+    markers = ['قال رسول الله', 'قال النبي', 'أن رسول الله', 'أن النبي',
+               'عن النبي', 'سمعت رسول الله', 'سمعت النبي', 'يقول',
+               'قال صلى الله عليه وسلم', 'قال:']
+    best_pos = -1
+    for m in markers:
+        pos = text.find(m)
+        if pos != -1 and (best_pos == -1 or pos < best_pos):
+            best_pos = pos
+    if best_pos > 0:
+        return text[best_pos:].strip()
+    return text.strip()
+
 def search_hadith(q, sb):
-    """البحث في الحديث مع إظهار راوي الحديث"""
-    words = [w for w in q.split() if len(w) > 3][:3]
-    results = []
+    """البحث في الحديث مع ترتيب حسب الصلة وتنظيف المتن"""
+    qc = clean(q)
+    words = [w for w in qc.split() if len(w) > 3][:5]
+    if not words:
+        return []
+    candidates = {}
     for word in words:
         try:
             resp = sb.table("hadith").select("text_ar,source")\
                 .ilike("text_ar", f"%{word}%")\
-                .limit(5).execute()
+                .limit(15).execute()
             for row in resp.data:
-                if row.get("text_ar"):
-                    results.append({
+                txt = row.get("text_ar","")
+                if not txt: continue
+                key = txt[:80]
+                if key not in candidates:
+                    rc = clean(str(txt))
+                    score = sum(1 for w in words if w in rc)
+                    candidates[key] = {
                         "source": row.get("source", "حديث"),
-                        "text":   str(row.get("text_ar",""))[:300],
-                    })
+                        "text":   clean_matn(str(txt))[:300],
+                        "score":  score
+                    }
         except: pass
-    return results[:3]
+    # ترتيب حسب أعلى صلة
+    ranked = sorted(candidates.values(), key=lambda x: x["score"], reverse=True)
+    return ranked[:3]
+
+def search_book_ranked(table, q, sb, top=1):
+    """بحث دقيق مرتّب حسب الصلة في كتاب معيّن"""
+    qc = clean(q)
+    words = [w for w in qc.split() if len(w) > 3]
+    if not words: return []
+    try:
+        resp = sb.table(table).select("text_ar").execute()
+        scored = []
+        for row in resp.data:
+            txt = str(row.get("text_ar",""))
+            rc = clean(txt)
+            # تطابق تام للجملة كاملة = أولوية قصوى
+            if qc in rc:
+                scored.append((100, txt))
+                continue
+            # عدد الكلمات المطابقة
+            score = sum(1 for w in words if w in rc)
+            if score >= 1:
+                scored.append((score, txt))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [t[1][:450] for t in scored[:top]]
+    except: pass
+    return []
 
 def search_manjam(q, sb):
     """التخريج من كتاب منجم الأصول حصراً"""
-    try:
-        resp = sb.table("manjam_al_usul").select("text_ar").execute()
-        qc = clean(q)
-        for row in resp.data:
-            if qc in clean(str(row.get("text_ar",""))):
-                return str(row.get("text_ar",""))[:400]
-    except: pass
-    return ""
+    res = search_book_ranked("manjam_al_usul", q, sb, top=1)
+    return res[0] if res else ""
 
 def search_idah(q, sb):
     """التخريج من كتاب الإيضاح المحايد حصراً"""
-    try:
-        resp = sb.table("idah_al_muhayid").select("text_ar").execute()
-        qc = clean(q)
-        for row in resp.data:
-            if qc in clean(str(row.get("text_ar",""))):
-                return str(row.get("text_ar",""))[:400]
-    except: pass
-    return ""
+    res = search_book_ranked("idah_al_muhayid", q, sb, top=1)
+    return res[0] if res else ""
 
 # ============================================================
 # محرك الاستنباط
@@ -586,34 +627,18 @@ def tawil_engine(q, sb):
 # محرك الاستفسار
 # ============================================================
 def istifsar_engine(q, sb):
-    """محرك الاستفسار — الإجابة من المنجم والإيضاح حصراً"""
-    qc = clean(q)
-    words = [w for w in qc.split() if len(w) > 3][:5]
+    """محرك الاستفسار — الإجابة من المنجم والإيضاح حصراً، مرتّبة حسب الصلة"""
     answers = []
 
-    # البحث في منجم الأصول
-    for word in words:
-        try:
-            resp = sb.table("manjam_al_usul").select("text_ar")\
-                .ilike("text_ar", f"%{word}%").limit(3).execute()
-            for row in resp.data:
-                txt = str(row.get("text_ar",""))
-                if txt and txt not in [a["النص"] for a in answers]:
-                    answers.append({"المصدر": "كتاب منجم الأصول", "النص": txt[:400]})
-        except: pass
-        if len(answers) >= 2: break
+    # أفضل نتيجتين من منجم الأصول
+    manjam_results = search_book_ranked("manjam_al_usul", q, sb, top=2)
+    for txt in manjam_results:
+        answers.append({"المصدر": "كتاب منجم الأصول", "النص": txt})
 
-    # البحث في الإيضاح المحايد
-    for word in words:
-        try:
-            resp = sb.table("idah_al_muhayid").select("text_ar")\
-                .ilike("text_ar", f"%{word}%").limit(3).execute()
-            for row in resp.data:
-                txt = str(row.get("text_ar",""))
-                if txt and txt not in [a["النص"] for a in answers]:
-                    answers.append({"المصدر": "كتاب الإيضاح المحايد", "النص": txt[:400]})
-        except: pass
-        if len(answers) >= 4: break
+    # أفضل نتيجتين من الإيضاح المحايد
+    idah_results = search_book_ranked("idah_al_muhayid", q, sb, top=2)
+    for txt in idah_results:
+        answers.append({"المصدر": "كتاب الإيضاح المحايد", "النص": txt})
 
     if not answers:
         answers.append({
@@ -621,8 +646,7 @@ def istifsar_engine(q, sb):
             "النص": (
                 "السؤال خارج عن منهجيتي، أو لم توجد إجابة مباشرة في "
                 "كتاب منجم الأصول أو كتاب الإيضاح المحايد.\n"
-                "يمكنك الاطلاع على الكتابين عبر محرك الاستفسار بطرح "
-                "سؤال محدد عن موضوع يتناوله المؤلف."
+                "يمكنك إعادة صياغة سؤالك بكلمات مفتاحية يتناولها المؤلف في الكتابين."
             )
         })
     return {"الإجابات": answers, "خاتمة": KHATIMA}
