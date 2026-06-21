@@ -297,20 +297,18 @@ def search_quran(q, sb):
 
 def search_hadith(q, sb):
     """البحث في أحاديث الجداول المتاحة"""
-    hadith_tables = ["hadith", "seerah_halabiyya", "seerah_ibn_hish", "seerah_tashrii"]
     qc = clean(q)
-    words = [w for w in qc.split() if len(w) > 3][:5]
+    words = [w for w in qc.split() if len(w) > 3][:8]
     results = []
-    for table in hadith_tables:
-        try:
-            resp = sb.table(table).selresp = sb.table(table).select("text_ar,source").limit(300).execute()ect("text,source").limit(300).execute()
-            for row in resp.data:
-                rc = clean(str(row.getrc = clean(str(row.get("text_ar","")))("text","")))
-                score = sum(1 for w in words if w in rc)
-                if score >= 2:
-                    results.append({"source": row.get("source", table),
-                                    "text":"text": str(row.get("text_ar",""))[:200], "score": score}) str(row.get("text",""))[:200], "score": score})
-        except: pass
+    try:
+        resp = sb.table("hadith").select("text_ar,source").limit(500).execute()
+        for row in resp.data:
+            rc = clean(str(row.get("text_ar","")))
+            score = sum(1 for w in words if w in rc)
+            if score >= 1:
+                results.append({"source": row.get("source", "حديث"),
+                                "text": str(row.get("text_ar",""))[:250], "score": score})
+    except: pass
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:3]
 
