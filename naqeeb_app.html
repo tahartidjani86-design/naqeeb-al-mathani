@@ -464,24 +464,25 @@ function badge(text, type='gold') {
 
 function renderIstinbat(data) {
   const d = data['استنباط'] || data.istinbat || {};
-  const asl     = d['الأصل']            || d.asl_type    || '—';
-  const usul    = d['الأصول']           || d.asl_source  || '—';
-  const furoo   = d['الفروع']           || d.branch_context || [];
-  const shuba   = d['الشعبة']           || '—';
-  const dabit   = d['الضابط']           || d.dabit_rule  || [];
-  const nazari  = d['الحكم_النظري']     || d.hukm_nazari || '—';
-  const darori  = d['الحكم_الضروري']    || d.hukm_darori_illa || '—';
-  const hadith  = d['الأحاديث_المتصلة'] || d.sunnah_seerah_match || '—';
-  const khatima = d['خاتمة']            || '';
+  const asl      = d['الأصل']            || '—';
+  const usul     = d['الأصول']           || '—';
+  const furoo    = d['الفروع']           || [];
+  const shuba    = d['الشعبة']           || '—';
+  const dabit    = d['الضابط']           || [];
+  const nazari   = d['الحكم_النظري']     || '—';
+  const darori   = d['الحكم_الضروري']    || '—';
+  const hadith   = d['الأحاديث_المتصلة'] || '—';
+  const takhreej = d['التخريج']          || '—';
+  const khatima  = d['خاتمة']            || '';
   const usulColor = usul.includes('الكتاب') ? 'gold' : usul.includes('السنة') ? 'teal' : 'blue';
   return `
     <div class="data-row">
       <div class="data-label">الأصل</div>
-      <div class="data-value" style="font-size:13px">${asl}</div>
+      <div class="data-value">${badge(asl, asl==='وحي'?'gold':'blue')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الأصول</div>
-      <div class="data-value">${badge(usul, usulColor)}</div>
+      <div class="data-value" style="font-size:12px;white-space:pre-line;color:var(--text-main)">${usul}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الفروع</div>
@@ -507,7 +508,11 @@ function renderIstinbat(data) {
       <div class="data-label">الأحاديث المتصلة</div>
       <div class="data-value" style="font-size:12px;color:var(--text-muted);white-space:pre-line">${hadith}</div>
     </div>
-    <div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>
+    <div class="data-row">
+      <div class="data-label">التخريج</div>
+      <div class="data-value" style="font-size:12px;color:var(--text-main);white-space:pre-line">${takhreej}</div>
+    </div>
+    <div style="font-size:11px;color:var(--gold);margin-top:12px;font-style:italic;line-height:1.6">${khatima}</div>
   `;
 }
 
