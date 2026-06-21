@@ -298,18 +298,21 @@ def search_quran(q, sb):
 def search_hadith(q, sb):
     """البحث في أحاديث الجداول المتاحة"""
     qc = clean(q)
-    words = [w for w in qc.split() if len(w) > 3][:8]
+    words = [w for w in qc.split() if len(w) > 3][:3]
     results = []
-    try:
-        resp = sb.table("hadith").select("text_ar,source").limit(500).execute()
-        for row in resp.data:
-            rc = clean(str(row.get("text_ar","")))
-            score = sum(1 for w in words if w in rc)
-            if score >= 1:
-                results.append({"source": row.get("source", "حديث"),
-                                "text": str(row.get("text_ar",""))[:250], "score": score})
-    except: pass
-    results.sort(key=lambda x: x["score"], reverse=True)
+    for word in words:
+        try:
+            resp = sb.table("hadith").select("text_ar,source")\
+                .ilike("text_ar", f"%{word}%")\
+                .limit(5).execute()
+            for row in resp.data:
+                if row.get("text_ar"):
+                    results.append({
+                        "source": row.get("source", "حديث"),
+                        "text": str(row.get("text_ar",""))[:250],
+                        "score": 1
+                    })
+        except: pass
     return results[:3]
 
 def search_manjam(q, sb):
