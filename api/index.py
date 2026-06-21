@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 نقيب المثاني - Vercel Serverless Function (FastAPI)
-المنهجية الكاملة: استنباط + تأويل + استفسار
+النسخة النهائية المراجعة — استنباط + تأويل + استفسار
 """
 
 import re
@@ -20,10 +20,11 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 def get_supabase() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-KHATIMA = "\n\nهذا والله أعلم، ويبقى الذكاء الاصطناعي قاصراً عن مزايا مدارك البشر وقد يخطئ."
+# الخاتمة الثابتة كما نصّت عليها المنهجية
+KHATIMA = "هذا والله أعلم، ويبقى الذكاء الاصطناعي قاصراً عن مزايا المدارك البشرية وكذلك يمكن أن يخطئ أحياناً، فإن وقع خطأ فهو في المبرمج وليس في المنهج."
 
 # ============================================================
-# قاموس الأروقة الثمانية — مثبّت في الكود كاملاً
+# قاموس الأروقة الثمانية — مثبّت كاملاً
 # ============================================================
 ARWIQA = {
     "الله":               {"martaba": "مرتبة ذات الاسم الجامع لاستواء اسم الذات واسماء الصفات واسماء الفعال", "rwaq": "رواق المنفردات", "bab": "أزلي أبدي", "rkn": "الحضرة العلية"},
@@ -128,16 +129,16 @@ ARWIQA = {
 }
 
 # ============================================================
-# قاموس التحلي والتخلي
+# قاموس التحلي والتخلي — كما نصّت عليه المنهجية
 # ============================================================
 TAHALLI_RULES = {
     "الله":               {"hukm": "لا يجوز", "say": "لا يقال إله"},
     "الرب":               {"hukm": "يجوز",    "say": "يقال رباني"},
-    "الرحمن":             {"hukm": "يجوز",    "say": "لا يقال رحمن"},
+    "الرحمن":             {"hukm": "يجوز",    "say": "ولا يقال رحمن"},
     "الرحيم":             {"hukm": "يجب",     "say": "يقال رحيم"},
     "مالك الملك":         {"hukm": "يجوز",    "say": "يقال مالك"},
     "الملك":              {"hukm": "يجوز",    "say": "يقال ملك"},
-    "ذو الجلال والإكرام": {"hukm": "يجوز",    "say": "يقال جليل كريم"},
+    "ذو الجلال والإكرام": {"hukm": "يجوز",    "say": "يقال جليل مكرم"},
     "الجليل":             {"hukm": "يجوز",    "say": "يقال جليل"},
     "المجيد":             {"hukm": "يجوز",    "say": "يقال مجيد"},
     "الماجد":             {"hukm": "يجوز",    "say": "يقال ماجد"},
@@ -156,7 +157,7 @@ TAHALLI_RULES = {
     "الباقي":             {"hukm": "يجوز",    "say": "يقال باقي"},
     "الواحد":             {"hukm": "يجوز",    "say": "يقال واحد"},
     "الصمد":              {"hukm": "لا يجوز", "say": "لا يقال صمد"},
-    "القدوس":             {"hukm": "يجوز",    "say": "يقال قدوس"},
+    "القدوس":             {"hukm": "يجوز",    "say": "يقال مقدس"},
     "السلام":             {"hukm": "يجب",     "say": "يقال سلام"},
     "العليم":             {"hukm": "يجوز",    "say": "يقال عليم"},
     "الحكيم":             {"hukm": "يجوز",    "say": "يقال حكيم"},
@@ -260,16 +261,19 @@ def get_rwaq_info(name):
     return None
 
 def get_special(name):
+    """تمييز مشيئة الألوهية وشؤون الربوبية"""
     nc = clean(name)
-    if any(w in nc for w in ['الله','اله','اللهم']): return "مشيئة الألوهية"
-    if any(w in nc for w in ['الرب','ربنا','ربكم','ربي','رب']): return "شؤون الربوبية"
+    if any(w in nc for w in ['الله','اله','اللهم','الاهكم','لله']):
+        return "مشيئة الألوهية"
+    if any(w in nc for w in ['الرب','ربنا','ربكم','ربك','ربي','رب ']):
+        return "شؤون الربوبية"
     return None
 
 # ============================================================
 # البحث في Supabase
 # ============================================================
 def search_quran(q, sb):
-    """بحث جزئي في القرآن الكريم"""
+    """بحث في القرآن الكريم مع إظهار نص الآية"""
     try:
         resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
         qc = clean(q)
@@ -289,16 +293,18 @@ def search_quran(q, sb):
         if matches:
             matches.sort(key=lambda x: x["score"], reverse=True)
             b = matches[0]
-            return {"found": True, "source": "القرآن الكريم",
-                    "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
-                    "text": b["text"]}
+            return {
+                "found":     True,
+                "source":    "القرآن الكريم",
+                "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
+                "text":      b["text"]
+            }
     except: pass
     return {"found": False}
 
 def search_hadith(q, sb):
-    """البحث في أحاديث الجداول المتاحة"""
-    qc = clean(q)
-    words = [w for w in qc.split() if len(w) > 3][:3]
+    """البحث في الحديث مع إظهار راوي الحديث"""
+    words = [w for w in q.split() if len(w) > 3][:3]
     results = []
     for word in words:
         try:
@@ -309,29 +315,30 @@ def search_hadith(q, sb):
                 if row.get("text_ar"):
                     results.append({
                         "source": row.get("source", "حديث"),
-                        "text": str(row.get("text_ar",""))[:250],
-                        "score": 1
+                        "text":   str(row.get("text_ar",""))[:300],
                     })
         except: pass
     return results[:3]
 
 def search_manjam(q, sb):
+    """التخريج من كتاب منجم الأصول حصراً"""
     try:
         resp = sb.table("manjam_al_usul").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
             if qc in clean(str(row.get("text_ar",""))):
-                return str(row.get("text_ar",""))[:300]
+                return str(row.get("text_ar",""))[:400]
     except: pass
     return ""
 
 def search_idah(q, sb):
+    """التخريج من كتاب الإيضاح المحايد حصراً"""
     try:
         resp = sb.table("idah_al_muhayid").select("text_ar").execute()
         qc = clean(q)
         for row in resp.data:
             if qc in clean(str(row.get("text_ar",""))):
-                return str(row.get("text_ar",""))[:300]
+                return str(row.get("text_ar",""))[:400]
     except: pass
     return ""
 
@@ -343,12 +350,12 @@ def classify_branch(text):
     branches = []
     tashrii  = ['الصلاة','الزكاة','الصوم','الحج','الطهارة','الوضوء','الغسل','التيمم',
                 'الجهاد','النكاح','الطلاق','القصاص','المواريث','الاسلام','المسلمون',
-                'صلوا','اقيموا','ويقيمون','الجمعه','الحج']
+                'صلوا','اقيموا','ويقيمون','وآتوا','الزكاه']
     aqadi    = ['الإيمان','المؤمنون','آمنوا','يؤمنون','التوحيد','الله','الرسل','الأنبياء',
-                'الملائكة','الجنه','النار','القضاء','القدر','كفر','شرك','الغيب',
-                'يشاء','المشيئه','الرب','ربكم','ربنا','ربي']
+                'الملائكه','الجنه','النار','القضاء','القدر','كفر','شرك','الغيب',
+                'يشاء','المشيئه','الرب','ربكم','ربنا','ربي','امنوا']
     muamalati= ['الإحسان','المحسن','التقوى','البر','السخاء','الإنفاق','النصيحه',
-                'الصدق','الأخلاق','معروف','منكر','ينفقون','رزقناهم']
+                'الصدق','الاخلاق','معروف','منكر','ينفقون','رزقناهم','والانفاق']
     if any(k in t for k in tashrii):    branches.append("فرع تشريعي — فرع الإسلام")
     if any(k in t for k in aqadi):      branches.append("فرع عقائدي — فرع الإيمان")
     if any(k in t for k in muamalati):  branches.append("فرع معاملاتي — فرع الإحسان")
@@ -356,13 +363,17 @@ def classify_branch(text):
 
 def extract_shuba(text, branches):
     t = clean(text)
-    shuba_map = {'الصلاة':'الصلاة وأحكامها','الزكاة':'الزكاة والصدقات',
-                 'الصوم':'الصوم وأحكامه','الحج':'الحج والعمرة',
-                 'الطهارة':'الطهارة والوضوء','الجهاد':'الجهاد والرباط',
-                 'النكاح':'النكاح وأحكامه','الطلاق':'الطلاق والفرقة',
-                 'الإيمان':'الإيمان وأصوله','التوحيد':'التوحيد ونفي الشرك',
-                 'الغيب':'الإيمان بالغيب','الإنفاق':'الإنفاق في سبيل الله',
-                 'التقوى':'التقوى والإحسان','الأخلاق':'الأخلاق والآداب'}
+    shuba_map = {
+        'الصلاة':'الصلاة وأحكامها','الزكاة':'الزكاة والصدقات',
+        'الصوم':'الصوم وأحكامه','الحج':'الحج والعمرة',
+        'الطهارة':'الطهارة والوضوء','الجهاد':'الجهاد والرباط',
+        'النكاح':'النكاح وأحكامه','الطلاق':'الطلاق والفرقة',
+        'الإيمان':'الإيمان وأصوله','التوحيد':'التوحيد ونفي الشرك',
+        'الغيب':'الإيمان بالغيب','الإنفاق':'الإنفاق في سبيل الله',
+        'التقوى':'التقوى والإحسان','الأخلاق':'الأخلاق والآداب',
+        'الجهاد':'الجهاد والرباط','القصاص':'القصاص والحدود',
+        'المواريث':'المواريث والفرائض'
+    }
     for k, v in shuba_map.items():
         if k in t: return v
     if 'عقائدي' in str(branches): return 'العقيدة والتوحيد'
@@ -372,34 +383,39 @@ def extract_shuba(text, branches):
 def classify_dabit(text, asl_source):
     t = clean(text)
     dabits = []
-    cmd = ['افعلوا','اقيموا','اتوا','اطيعوا','أمر','كتب','فرض','أوجب','لابد',
-           'يجب','يلزم','صلوا','آتوا','ارجعوا','انشزوا','تفسحوا']
+    cmd = ['افعلوا','اقيموا','اتوا','اطيعوا','أمر','كتب','فرض','أوجب','يجب','صلوا','آتوا','ارجعوا']
     prh = ['نهي','حرم','لا تقربوا','لا تفعلوا','لا يحل','لا تقتلوا']
-    mujmal   = ['لا يكلف','الا وسعها','مجمل','مبهم']
-    mutafawit= ['أولي الأمر','يرجح','متفاوت']
-    asma = list(ARWIQA.keys())
-    has_asma = any(clean(a) in t for a in asma)
-    has_cmd  = any(k in t for k in cmd)
-    has_prh  = any(k in t for k in prh)
-    if has_asma or has_cmd or has_prh:
-        if any(k in t for k in mujmal): dabits.append("لفظ مجمل")
-        elif any(k in t for k in mutafawit): dabits.append("لفظ متفاوت")
-        else: dabits.append("لفظ محكم")
+    mujmal   = ['لا يكلف','الا وسعها','مجمل','مبهم','لا يكلف الله']
+    mutafawit= ['أولي الأمر','يرجح','متفاوت','اطيعوا']
+    asma_list = list(ARWIQA.keys())
+    has_asma  = any(clean(a) in t for a in asma_list)
+    has_cmd   = any(k in t for k in cmd)
+    has_prh   = any(k in t for k in prh)
+
+    if any(k in t for k in mujmal):
+        dabits.append("لفظ مجمل")
+    elif any(k in t for k in mutafawit) and not has_cmd:
+        dabits.append("لفظ متفاوت")
+    elif has_asma or has_cmd or has_prh:
+        dabits.append("لفظ محكم")
+
     if any(k in t for k in ['قياس','علة','شبه']): dabits.append("القياس")
     if any(k in t for k in ['أجمع','إجماع','اتفق','السلف','الصحابه']): dabits.append("الإجماع")
     if any(k in t for k in ['نسخ','ناسخ','منسوخ']): dabits.append("النسخ")
-    if any(k in t for k in ['فعل النبي','تحنيك','رفع اليدين']): dabits.append("الفعل")
+    if any(k in t for k in ['فعل النبي','تحنيك','رفع اليدين','قلب العبائه']): dabits.append("الفعل")
     if any(k in t for k in ['أقر','إقرار','سكت عن']): dabits.append("الإقرار")
     if any(k in t for k in ['سبب','سببيه','بسبب']): dabits.append("السبب")
+
     return dabits or ["لفظ متفاوت"]
 
 def extract_hukm_nazari(text, dabits, branches, asl_source):
     t = clean(text)
     ds = " ".join(dabits)
-    cmd = ['افعلوا','اقيموا','اتوا','اطيعوا','أمر','كتب','فرض','أوجب','يجب','صلوا','آتوا']
+    cmd = ['افعلوا','اقيموا','اتوا','اطيعوا','أمر','كتب','فرض','أوجب','يجب','صلوا','آتوا','ارجعوا']
     prh = ['نهي','حرم','لا تقربوا','لا تفعلوا','لا يحل']
     has_cmd = any(k in t for k in cmd)
     has_prh = any(k in t for k in prh)
+
     if "الإقرار" in ds: return "جائز"
     if "لفظ محكم" in ds:
         if asl_source == "الكتاب":
@@ -432,10 +448,12 @@ def extract_hukm_darori(text, nazari, dabits, branches, asl_source):
         if any(k in t for k in ['رخصه','رخصة']): return "الرخصة"
         return "العزيمة"
     if "الفعل" in ds:
-        return "واجب" if nazari == "واجب" else "مستحب"
+        if nazari == "واجب": return "واجب"
+        if nazari == "مندوب": return "مندوب عيني"
+        return "مستحب"
     if "لفظ محكم" in ds:
         if nazari == "واجب":
-            return "فرض عين" if "عقائدي" in str(branches) else "فرض عين"
+            return "فرض عين" if "عقائدي" in str(branches) or "تشريعي" in str(branches) else "فرض كفاية"
         if nazari == "مستحيل": return "حرام"
         if nazari == "مندوب":  return "مندوب عيني"
         if nazari == "يُجتنب": return "مكروه"
@@ -445,38 +463,72 @@ def extract_hukm_darori(text, nazari, dabits, branches, asl_source):
     return "مباح"
 
 def istinbat_engine(q, sb):
-    quran = search_quran(q, sb)
+    """محرك الاستنباط — المنهجية الكاملة"""
+    quran  = search_quran(q, sb)
     hadith = search_hadith(q, sb)
+
+    # ١. الأصل
     if quran["found"]:
-        asl = f"وحي — {quran['source']} | {quran['reference']}"
+        asl        = "وحي"
         asl_source = "الكتاب"
-        usul = ["الكتاب"]
+        usul       = ["الكتاب"]
+        nass       = quran["text"]
+        ref        = quran["reference"]
         if hadith: usul.append("السنة")
     elif hadith:
-        asl = f"وحي — السنة النبوية | {hadith[0]['source']}"
+        asl        = "وحي"
         asl_source = "السنة"
-        usul = ["السنة"]
+        usul       = ["السنة"]
+        nass       = hadith[0]["text"]
+        ref        = hadith[0]["source"]
     else:
-        asl = "ليس وحياً مباشراً في قاعدة البيانات"
+        asl        = "ليس وحياً مباشراً في قاعدة البيانات"
         asl_source = "غير وحي"
-        usul = ["—"]
+        usul       = ["—"]
+        nass       = ""
+        ref        = "—"
+
+    # ٢. الأصول — إظهار نص الآية أو راوي الحديث
+    usul_text = " و ".join(usul)
+    nass_display = f"\n{nass[:200]}" if nass else ""
+
+    # ٣. الفروع والشعبة
     branches = classify_branch(q)
     shuba    = extract_shuba(q, branches)
-    dabits   = classify_dabit(q, asl_source)
-    nazari   = extract_hukm_nazari(q, dabits, branches, asl_source)
-    darori   = extract_hukm_darori(q, nazari, dabits, branches, asl_source)
-    hadith_txt = ""
+
+    # ٤. الضابط والأحكام
+    dabits  = classify_dabit(q, asl_source)
+    nazari  = extract_hukm_nazari(q, dabits, branches, asl_source)
+    darori  = extract_hukm_darori(q, nazari, dabits, branches, asl_source)
+
+    # ٥. الأحاديث المتصلة
+    hadith_display = ""
     if hadith:
-        hadith_txt = "أحاديث متصلة:\n" + "\n".join(f"• {h['source']}: {h['text'][:120]}..." for h in hadith)
+        hadith_display = "أحاديث متصلة:\n"
+        for h in hadith:
+            hadith_display += f"• {h['source']}: {h['text'][:150]}...\n"
+
+    # ٦. التخريج — من المنجم والإيضاح حصراً
+    takhreej_manjam = search_manjam(q, sb)
+    takhreej_idah   = search_idah(q, sb)
+    takhreej = ""
+    if takhreej_manjam:
+        takhreej += f"• من كتاب منجم الأصول:\n{takhreej_manjam}\n\n"
+    if takhreej_idah:
+        takhreej += f"• من كتاب الإيضاح المحايد:\n{takhreej_idah}\n"
+    if not takhreej:
+        takhreej = "لم توجد مطابقات في المصدرين المعتمدَين (منجم الأصول / الإيضاح المحايد)"
+
     return {
         "الأصل":              asl,
-        "الأصول":             " و ".join(usul),
+        "الأصول":             f"{usul_text}{nass_display}\nالمرجع: {ref}",
         "الفروع":             branches,
         "الشعبة":             shuba,
         "الضابط":             dabits,
         "الحكم_النظري":       nazari,
         "الحكم_الضروري":      darori,
-        "الأحاديث_المتصلة":   hadith_txt or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
+        "الأحاديث_المتصلة":   hadith_display or "لم توجد أحاديث مرتبطة في قاعدة البيانات",
+        "التخريج":            takhreej,
         "خاتمة":              KHATIMA
     }
 
@@ -484,6 +536,7 @@ def istinbat_engine(q, sb):
 # محرك التأويل
 # ============================================================
 def tawil_engine(q, sb):
+    """محرك التأويل — الأروقة الثمانية + التحلي/التخلي"""
     qc = clean(q)
     all_names = {clean(k): k for k in ARWIQA.keys()}
     detected = []
@@ -513,8 +566,8 @@ def tawil_engine(q, sb):
     # بحث في النص كاملاً
     for nc, orig in all_names.items():
         if nc in qc: add(orig)
-    # الله والرب بأشكالهما
-    if any(x in qc for x in ['الله','اله','اللهم']): add('الله')
+    # الله والرب بأشكالهما المختلفة
+    if any(x in qc for x in ['الله','اله','اللهم','لله','الاهكم']): add('الله')
     if any(x in qc for x in ['الرب','ربنا','ربكم','ربي','رب ']): add('الرب')
 
     if not detected:
@@ -533,20 +586,26 @@ def tawil_engine(q, sb):
 # محرك الاستفسار
 # ============================================================
 def istifsar_engine(q, sb):
+    """محرك الاستفسار — الإجابة من المنجم والإيضاح حصراً"""
     manjam = search_manjam(q, sb)
     idah   = search_idah(q, sb)
     answers = []
     if manjam: answers.append({"المصدر": "كتاب منجم الأصول",    "النص": manjam})
     if idah:   answers.append({"المصدر": "كتاب الإيضاح المحايد", "النص": idah})
+
     if not answers:
-        answers.append({"المصدر": "منهجية نقيب المثاني", "النص": (
-            "نقيب المثاني نظام للاستنباط والتأويل مبني على منهجية كتابَي «منجم الأصول» "
-            "و«الإيضاح المحايد» للعلامة محمد الطاهر المدني التجاني. "
-            "يتكون من ثلاثة محركات: الاستنباط (الأصل والأصول والفروع والشعبة والضابط والأحكام)، "
-            "والتأويل (الأسماء الحسنى والأروقة الثمانية وأحكام التحلي والتخلي)، "
-            "والاستفسار (الإجابة من المصادر المعتمدة فقط). "
-            "إذا كان سؤالك خارجاً عن هذه المنهجية فالإجابة: السؤال خارج عن منهجيتي."
-        )})
+        answers.append({
+            "المصدر": "منهجية نقيب المثاني",
+            "النص": (
+                "نقيب المثاني نظام للاستنباط والتأويل مبني على منهجية كتابَي "
+                "«منجم الأصول» و«الإيضاح المحايد» للعلامة محمد الطاهر المدني التجاني. "
+                "يتكون من ثلاثة محركات:\n"
+                "• محرك الاستنباط: يحدد الأصل والأصول والفروع والشعبة والضابط والأحكام والتخريج.\n"
+                "• محرك التأويل: يربط الأسماء الحسنى بالأروقة الثمانية وأحكام التحلي والتخلي.\n"
+                "• محرك الاستفسار: يجيب عن أسئلة المنهجية من المصادر المعتمدة حصراً.\n"
+                "إذا كان سؤالك خارجاً عن هذه المنهجية فالإجابة: السؤال خارج عن منهجيتي."
+            )
+        })
     return {"الإجابات": answers, "خاتمة": KHATIMA}
 
 # ============================================================
