@@ -349,10 +349,27 @@ def search_hadith(q, sb):
     ranked = sorted(candidates.values(), key=lambda x: x["score"], reverse=True)
     return ranked[:3]
 
-def search_book_ranked(table, q, sb, top=1):
-    """بحث دقيق مرتّب حسب الصلة في كتاب معيّن"""
+# كلمات منهجية عامة تتكرر في مقدمات الكتابين — تُستبعد من ترجيح التخريج
+STOP_WORDS = {
+    'الوحي','الاصل','الاصول','التاويل','المنهجيه','الكتاب','السنه','المحور',
+    'تعريف','الدين','العلم','النص','النصوص','المعنى','قوله','تعالى','الحديث',
+    'كتاب','باب','الفرع','الفروع','الشعبه','الضابط','الحكم','الاحكام','هذا',
+    'هذه','الذي','التي','كما','مثل','وهو','وهي','ذلك','عليه','الله','رسول',
+    'النبي','صلى','وسلم','عن','من','في','على','الى','بين','كان','قال'
+}
+
+def key_words(q):
+    """استخراج الكلمات الجوهرية من النص بعد استبعاد كلمات المنهجية العامة"""
     qc = clean(q)
     words = [w for w in qc.split() if len(w) > 3]
+    core = [w for w in words if w not in STOP_WORDS]
+    return core if core else words
+
+def search_book_ranked(table, q, sb, top=1):
+    """بحث دقيق مرتّب حسب الصلة — يرجّح الكلمات الجوهرية على العامة"""
+    qc = clean(q)
+    words = [w for w in qc.split() if len(w) > 3]
+    core  = key_words(q)
     if not words: return []
     try:
         resp = sb.table(table).select("text_ar").execute()
@@ -362,12 +379,15 @@ def search_book_ranked(table, q, sb, top=1):
             rc = clean(txt)
             # تطابق تام للجملة كاملة = أولوية قصوى
             if qc in rc:
-                scored.append((100, txt))
+                scored.append((1000, txt))
                 continue
-            # عدد الكلمات المطابقة
-            score = sum(1 for w in words if w in rc)
-            if score >= 1:
-                scored.append((score, txt))
+            # الكلمات الجوهرية تزن أكثر (×5) من الكلمات العامة (×1)
+            core_score = sum(5 for w in core if w in rc)
+            gen_score  = sum(1 for w in words if w in rc and w not in core)
+            total = core_score + gen_score
+            # يجب أن توجد كلمة جوهرية واحدة على الأقل للقبول
+            if core_score > 0:
+                scored.append((total, txt))
         scored.sort(key=lambda x: x[0], reverse=True)
         return [t[1][:450] for t in scored[:top]]
     except: pass
