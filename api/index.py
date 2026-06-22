@@ -276,13 +276,12 @@ def fetch_all(table, columns, sb, page_size=1000):
     all_rows = []
     start = 0
     while True:
-        try:
-            resp = sb.table(table).select(columns).range(start, start+page_size-1).execute()
-            batch = resp.data or []
-            all_rows.extend(batch)
-            if len(batch) < page_size: break
-            start += page_size
-        except: break
+        resp = sb.table(table).select(columns).range(start, start+page_size-1).execute()
+        batch = resp.data or []
+        all_rows.extend(batch)
+        if len(batch) < page_size: break
+        start += page_size
+        if start > 70000: break
     return all_rows
 
 def search_quran(q, sb):
