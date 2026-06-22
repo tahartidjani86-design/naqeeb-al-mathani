@@ -277,29 +277,34 @@ def search_quran(q, sb):
     try:
         resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
         qc = clean(q)
-        words = [w for w in qc.split() if len(w) > 2]
+        # كل الكلمات بما فيها القصيرة (على، في، من) للترجيح التسلسلي
+        all_words = qc.split()
+        words = [w for w in all_words if len(w) > 2]
         n_words = len(words)
         if n_words == 0:
             return {"found": False}
         matches = []
         for row in resp.data:
             rc = clean(str(row.get("text_uthmani","")))
-            # ١. تطابق تام للنص كاملاً = أعلى أولوية
+            # ١. تطابق تام للنص كاملاً = أعلى أولوية مطلقة
             if qc in rc:
-                score = 10000 + len(qc)
+                score = 100000 + len(qc)
             else:
-                # ٢. عدد الكلمات المطابقة
                 matched = sum(1 for w in words if w in rc)
                 if matched == 0:
                     continue
-                # ٣. ترجيح نسبة التطابق (كم كلمة من النص ظهرت)
                 ratio = matched / n_words
-                # ٤. ترجيح تسلسل الكلمات المتجاورة
+                # ٢. ترجيح قوي لتسلسل الكلمات المتجاورة (كل الكلمات)
                 seq_bonus = 0
-                for i in range(len(words)-1):
-                    pair = words[i] + " " + words[i+1]
+                for i in range(len(all_words)-1):
+                    pair = all_words[i] + " " + all_words[i+1]
                     if pair in rc:
-                        seq_bonus += 50
+                        seq_bonus += 200
+                # ٣. ترجيح أقوى للثلاثيات المتتالية
+                for i in range(len(all_words)-2):
+                    triple = all_words[i] + " " + all_words[i+1] + " " + all_words[i+2]
+                    if triple in rc:
+                        seq_bonus += 500
                 score = (matched * 10) + (ratio * 100) + seq_bonus
             matches.append({
                 "sura_num":  row.get("sura_num",""),
@@ -311,7 +316,6 @@ def search_quran(q, sb):
         if matches:
             matches.sort(key=lambda x: x["score"], reverse=True)
             b = matches[0]
-            # شرط الجودة: يجب تطابق نصف كلمات النص على الأقل (أو تطابق تام)
             best_matched = sum(1 for w in words if w in clean(b["text"]))
             if best_matched >= max(1, n_words // 2) or qc in clean(b["text"]):
                 return {
