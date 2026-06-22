@@ -273,32 +273,53 @@ def get_special(name):
 # البحث في Supabase
 # ============================================================
 def search_quran(q, sb):
-    """بحث في القرآن الكريم مع إظهار نص الآية"""
+    """بحث دقيق في القرآن — يرجّح التطابق التام وتسلسل الكلمات"""
     try:
         resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
         qc = clean(q)
-        words = [w for w in qc.split() if len(w) > 3]
+        words = [w for w in qc.split() if len(w) > 2]
+        n_words = len(words)
+        if n_words == 0:
+            return {"found": False}
         matches = []
         for row in resp.data:
             rc = clean(str(row.get("text_uthmani","")))
-            score = sum(1 for w in words if w in rc)
-            if score >= 1 or qc in rc:
-                matches.append({
-                    "sura_num":  row.get("sura_num",""),
-                    "aya_num":   row.get("aya_num",""),
-                    "sura_name": row.get("sura_name",""),
-                    "text":      row.get("text_uthmani",""),
-                    "score":     score
-                })
+            # ١. تطابق تام للنص كاملاً = أعلى أولوية
+            if qc in rc:
+                score = 10000 + len(qc)
+            else:
+                # ٢. عدد الكلمات المطابقة
+                matched = sum(1 for w in words if w in rc)
+                if matched == 0:
+                    continue
+                # ٣. ترجيح نسبة التطابق (كم كلمة من النص ظهرت)
+                ratio = matched / n_words
+                # ٤. ترجيح تسلسل الكلمات المتجاورة
+                seq_bonus = 0
+                for i in range(len(words)-1):
+                    pair = words[i] + " " + words[i+1]
+                    if pair in rc:
+                        seq_bonus += 50
+                score = (matched * 10) + (ratio * 100) + seq_bonus
+            matches.append({
+                "sura_num":  row.get("sura_num",""),
+                "aya_num":   row.get("aya_num",""),
+                "sura_name": row.get("sura_name",""),
+                "text":      row.get("text_uthmani",""),
+                "score":     score
+            })
         if matches:
             matches.sort(key=lambda x: x["score"], reverse=True)
             b = matches[0]
-            return {
-                "found":     True,
-                "source":    "القرآن الكريم",
-                "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
-                "text":      b["text"]
-            }
+            # شرط الجودة: يجب تطابق نصف كلمات النص على الأقل (أو تطابق تام)
+            best_matched = sum(1 for w in words if w in clean(b["text"]))
+            if best_matched >= max(1, n_words // 2) or qc in clean(b["text"]):
+                return {
+                    "found":     True,
+                    "source":    "القرآن الكريم",
+                    "reference": f"سورة {b['sura_name']} ({b['sura_num']}) — الآية {b['aya_num']}",
+                    "text":      b["text"]
+                }
     except: pass
     return {"found": False}
 
