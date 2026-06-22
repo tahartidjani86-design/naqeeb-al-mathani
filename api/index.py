@@ -272,10 +272,23 @@ def get_special(name):
 # ============================================================
 # البحث في Supabase
 # ============================================================
+def fetch_all(table, columns, sb, page_size=1000):
+    all_rows = []
+    start = 0
+    while True:
+        try:
+            resp = sb.table(table).select(columns).range(start, start+page_size-1).execute()
+            batch = resp.data or []
+            all_rows.extend(batch)
+            if len(batch) < page_size: break
+            start += page_size
+        except: break
+    return all_rows
+
 def search_quran(q, sb):
     """بحث دقيق في القرآن — يرجّح التطابق التام وتسلسل الكلمات"""
     try:
-        resp = sb.table("quran").select("sura_num,aya_num,sura_name,text_uthmani").execute()
+        resp = None
         qc = clean(q)
         # كل الكلمات بما فيها القصيرة (على، في، من) للترجيح التسلسلي
         all_words = qc.split()
@@ -284,7 +297,7 @@ def search_quran(q, sb):
         if n_words == 0:
             return {"found": False}
         matches = []
-        for row in resp.data:
+        for row in fetch_all("quran","sura_num,aya_num,sura_name,text_uthmani",sb):
             rc = clean(str(row.get("text_uthmani","")))
             # ١. تطابق تام للنص كاملاً = أعلى أولوية مطلقة
             if qc in rc:
