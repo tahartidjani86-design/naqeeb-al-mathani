@@ -274,14 +274,15 @@ def get_special(name):
 # ============================================================
 def fetch_all(table, columns, sb, page_size=1000):
     all_rows = []
-    start = 0
+    last_id = 0
     while True:
-        resp = sb.table(table).select(columns).range(start, start+page_size-1).execute()
+        resp = sb.table(table).select(columns + ',id').gt('id', last_id).order('id').limit(page_size).execute()
         batch = resp.data or []
+        if not batch: break
         all_rows.extend(batch)
+        last_id = batch[-1].get('id', last_id)
         if len(batch) < page_size: break
-        start += page_size
-        if start > 70000: break
+        if len(all_rows) > 70000: break
     return all_rows
 
 def search_quran(q, sb):
