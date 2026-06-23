@@ -442,7 +442,18 @@ def search_book_ranked(table, q, sb, top=1):
                 "rwaq":       row.get("rwaq","") or "",
             }))
         scored.sort(key=lambda x: x[0], reverse=True)
-        return [t[1] for t in scored[:top]]
+        # منع التكرار: نتجاهل الفقرات التي تتطابق بدايتها مع نتيجة سابقة
+        unique = []
+        seen_starts = set()
+        for score, item in scored:
+            fingerprint = clean(item["text"])[:60]
+            if fingerprint in seen_starts:
+                continue
+            seen_starts.add(fingerprint)
+            unique.append(item)
+            if len(unique) >= top:
+                break
+        return unique
     except: pass
     return []
 
