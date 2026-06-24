@@ -273,20 +273,16 @@ def get_special(name):
 # البحث في Supabase
 # ============================================================
 def fetch_all(table, columns, sb, page_size=1000):
-    """جلب كل الصفوف من الجدول على دفعات لتجاوز حد 1000 صف"""
     all_rows = []
-    start = 0
+    last_id = 0
     while True:
-        try:
-            resp = sb.table(table).select(columns)\
-                .range(start, start + page_size - 1).execute()
-            batch = resp.data or []
-            all_rows.extend(batch)
-            if len(batch) < page_size:
-                break
-            start += page_size
-        except:
-            break
+        resp = sb.table(table).select(columns + ',id').gt('id', last_id).order('id').limit(page_size).execute()
+        batch = resp.data or []
+        if not batch: break
+        all_rows.extend(batch)
+        last_id = batch[-1].get('id', last_id)
+        if len(batch) < page_size: break
+        if len(all_rows) > 70000: break
     return all_rows
 
 def search_quran(q, sb):
