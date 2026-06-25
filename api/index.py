@@ -358,34 +358,52 @@ def clean_matn(text):
         return text[best_pos:].strip()
     return text.strip()
 
+def clean_light(text):
+    """تنظيف خفيف للبحث: يزيل التشكيل فقط دون تحويل ة→ه أو ى→ي"""
+    if not text: return ""
+    text = re.sub(r"[\u064B-\u0652\u0670\u0656\u0657\u0615-\u061A\u06D6-\u06ED]", "", text)
+    text = re.sub(r"[ٰٖٓٗٙٚۡۥۦ]", "", text)
+    return " ".join(text.split())
+
 def search_hadith(q, sb):
     """البحث في الحديث مع ترتيب حسب الصلة وتنظيف المتن"""
-    qc = clean(q)
-    words = [w for w in qc.split() if len(w) > 3][:5]
+    # نبحث بكلمات بلا تشكيل لكن مع إبقاء ة و ى لتطابق النص الأصلي
+    q_light = clean_light(q)
+    words = [w for w in q_light.split() if len(w) > 3][:6]
+    # نستبعد الكلمات الشائعة جداً
+    skip = {"الذين","الذي","التي","قوله","تعالى","وقال","فقال","الله","الذين"}
+    words = [w for w in words if w not in skip]
     if not words:
         return []
     candidates = {}
     for word in words:
-        try:
-            resp = sb.table("hadith").select("text_ar,source")\
-                .ilike("text_ar", f"%{word}%")\
-                .limit(15).execute()
-            for row in resp.data:
-                txt = row.get("text_ar","")
-                if not txt: continue
-                key = txt[:80]
-                if key not in candidates:
-                    rc = clean(str(txt))
-                    score = sum(1 for w in words if w in rc)
-                    candidates[key] = {
-                        "source": row.get("source", "حديث"),
-                        "text":   clean_matn(str(txt))[:300],
-                        "score":  score
-                    }
-        except: pass
-    # ترتيب حسب أعلى صلة
+        # نجرّب الكلمة كما هي، ثم بحذف ال التعريف لتوسيع المطابقة
+        variants = [word]
+        if word.startswith("ال") and len(word) > 4:
+            variants.append(word[2:])
+        for variant in variants:
+            try:
+                resp = sb.table("hadith").select("text_ar,source")\
+                    .ilike("text_ar", f"%{variant}%")\
+                    .limit(12).execute()
+                for row in resp.data:
+                    txt = row.get("text_ar","")
+                    if not txt: continue
+                    key = txt[:80]
+                    if key not in candidates:
+                        rc = clean_light(str(txt))
+                        score = sum(1 for w in words if w in rc)
+                        candidates[key] = {
+                            "source": row.get("source", "حديث"),
+                            "text":   clean_matn(str(txt))[:300],
+                            "score":  score
+                        }
+            except: pass
+    # ترتيب حسب أعلى صلة، ونشترط مطابقة كلمتين على الأقل لتقليل الضوضاء
     ranked = sorted(candidates.values(), key=lambda x: x["score"], reverse=True)
-    return ranked[:3]
+    strong = [r for r in ranked if r["score"] >= 2]
+    result = strong if strong else ranked
+    return result[:3]
 
 # كلمات منهجية عامة تتكرر في مقدمات الكتابين — تُستبعد من ترجيح التخريج
 STOP_WORDS = {
