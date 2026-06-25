@@ -257,7 +257,7 @@
 </div>
 
 <script>
-const API_URL = 'https://naqeeb-al-mathani.vercel.app/api/index';
+const API_URL = 'https://naqeeb-al-mathani-14xx.vercel.app/api/index';
 let currentMode = 'istinbat';
 
 function setMode(mode) {
@@ -361,6 +361,30 @@ function renderIstinbat(d) {
   const nazariColor = nazari==='واجب'?'gold':nazari==='مستحيل'?'red':'teal';
   const daroriColor = darori==='فرض عين'||darori==='فرض كفاية'?'gold':darori==='حرام'?'red':'teal';
 
+  // الأحكام المتعددة (أمر + نهي + جواز في نص واحد)
+  const multiRulings = d['الأحكام_المتعددة'] || [];
+  let multiHtml = '';
+  if (multiRulings.length > 1) {
+    const typeColor = {'أمر':'gold','نهي':'red','جواز':'teal'};
+    const items = multiRulings.map(r => `
+      <div style="background:var(--bg-input);border-right:3px solid ${r['النوع']==='نهي'?'#dc5050':r['النوع']==='أمر'?'var(--gold)':'var(--teal)'};border-radius:0 8px 8px 0;padding:8px 12px;margin-top:6px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          ${badge(r['النوع'], typeColor[r['النوع']]||'blue')}
+          <span style="font-family:'Amiri',serif;font-size:15px;color:var(--gold-light)">«${r['اللفظ']||''}»</span>
+          <span style="margin-right:auto">${badge(r['الحكم'], typeColor[r['النوع']]||'blue')}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.7">${r['البيان']||''}</div>
+      </div>`).join('');
+    multiHtml = `
+      <div class="data-row">
+        <div class="data-label">تعدد الأحكام</div>
+        <div class="data-value">
+          <div style="font-size:11.5px;color:var(--gold-light);margin-bottom:4px">حمل النص أكثر من حكم:</div>
+          ${items}
+        </div>
+      </div>`;
+  }
+
   return `
     <div style="padding-top:10px">
     <div class="data-row">
@@ -401,6 +425,7 @@ function renderIstinbat(d) {
       <div class="data-label">الحكم الضروري</div>
       <div class="data-value">${badge(darori,daroriColor)}</div>
     </div>
+    ${multiHtml}
     <div class="data-row">
       <div class="data-label">الأحاديث</div>
       <div class="data-value">${hadithHtml}</div>
