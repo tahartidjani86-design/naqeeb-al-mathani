@@ -345,18 +345,21 @@ function renderIstinbat(d) {
   if (hadith && hadith !== 'لم توجد أحاديث مرتبطة في قاعدة البيانات') {
     const lines = hadith.split('\n').filter(l => l.trim() && l.startsWith('•'));
     lines.forEach(line => {
-      const match = line.match(/•\s*([^:]+):\s*"?\d+"?,?\s*"?\s*(.+)/);
+      // نمط مرن: المصدر ثم النص، مع أو بدون رقم
+      const match = line.match(/•\s*([^:]+):\s*(.+)/);
       if (match) {
         const source = match[1].trim();
-        let text = match[2].trim().replace(/^"/, '').replace(/"$/, '');
-        // حذف سلسلة الإسناد وإبقاء المتن
-        const hadithMatch = text.match(/(?:قال|أن النبي|رسول الله|عن النبي).{0,500}/);
+        let text = match[2].trim().replace(/^["\d,\s]+/, '').replace(/"$/, '');
+        // محاولة إبراز المتن بعد الإسناد إن أمكن (وإلا نعرض النص كما هو)
+        const hadithMatch = text.match(/(?:قال رسول الله|قال النبي|أن النبي|أن رسول الله|عن النبي|سمعت النبي|سمعت رسول الله).{0,400}/);
         if (hadithMatch) text = hadithMatch[0];
-        hadithHtml += `
-          <div class="hadith-card">
-            <div class="hadith-source">${source}</div>
-            <div class="hadith-text">${text.substring(0, 250)}...</div>
-          </div>`;
+        if (text.length > 8) {
+          hadithHtml += `
+            <div class="hadith-card">
+              <div class="hadith-source">${source}</div>
+              <div class="hadith-text">${text.substring(0, 260)}${text.length > 260 ? '…' : ''}</div>
+            </div>`;
+        }
       }
     });
   }
