@@ -397,13 +397,16 @@ def search_hadith(q, sb):
                 for row in resp.data:
                     txt = row.get("text_ar","")
                     if not txt: continue
-                    key = txt[:80]
-                    if key not in candidates:
+                    matn = clean_matn(str(txt))
+                    # بصمة على المتن المنظّف (بعد إزالة الإسناد) لمنع التكرار
+                    matn_clean = clean_light(matn)
+                    fp = matn_clean[:60] if len(matn_clean) >= 60 else matn_clean
+                    if fp and fp not in candidates:
                         rc = clean_light(str(txt))
                         score = sum(1 for w in words if w in rc)
-                        candidates[key] = {
+                        candidates[fp] = {
                             "source": row.get("source", "حديث"),
-                            "text":   clean_matn(str(txt))[:300],
+                            "text":   matn[:300],
                             "score":  score
                         }
             except: pass
