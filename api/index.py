@@ -599,6 +599,10 @@ def extract_shuba(text, branches):
 def classify_dabit(text, asl_source):
     """تعيين الضابط مع التعليل — لماذا اختاره النظام"""
     t = clean(text)
+    _padded = " " + t + " "
+    def word_in(term):
+        # مطابقة الكلمة كاملة (محاطة بمسافات) لا جزئية
+        return (" " + term + " ") in _padded
     dabits = []
     reasons = []
     cmd = ['اولي', 'احق', 'يعظم', 'فسبح', 'فاغضض', 'واغضض', 'فاعبدون', 'فاعبدو', 'فاعبد', 'فاستعذ', 'فولي', 'فولوا', 'واسجد', 'فسجد', 'فكبر', 'فطهر', 'فهجر', 'واتبع', 'اتبع', 'بلغ', 'واقيموا', 'اسمعوا', 'اطيعوا', 'وقولوا', 'قولوا', 'وقسط', 'واخفض', 'فحدث', 'فاجيروه', 'فسلموا', 'سلموا', 'ففسحوا', 'فارجعوا', 'قاتلوا', 'جاهدوا', 'حافضوا', 'فردوه', 'وقوموا', 'واصبر', 'اصبروا', 'وصابروا', 'ورابطوا', 'واصطبر', 'فاعبده', 'واتقوا', 'قوا', 'وابتغوا', 'واشهدوا', 'فانتشروا', 'فاذكروا', 'فاقيمو', 'وقاتلوا', 'وجاهدوا', 'اقيموا', 'اتوا', 'امر', 'يامر', 'يامركم', 'امركم', 'كتب', 'فرض', 'اوجب', 'يجب', 'صلوا', 'ارجعوا', 'يوصيكم', 'وصاكم', 'اقم', 'انفقوا', 'اعبدوا', 'اتقوا', 'اركعوا', 'اسجدوا', 'حافظوا', 'اوفوا', 'يوصي', 'قل', 'فخذوه', 'خذوه', 'اصبر', 'فاصبر', 'رابطوا', 'صابروا', 'فليصبر', 'فاستقم', 'استقيموا', 'اقرا', 'وامرت', 'فاسعوا', 'واتموا', 'واحسنوا', 'واقتلوهم', 'فاعتدوا', 'فليصمه', 'وليملل', 'فرهان', 'فنصف', 'ولاتنسوا', 'يرضعن', 'رزقهن', 'وكسوتهن', 'ولايحزنك']
@@ -607,14 +611,14 @@ def classify_dabit(text, asl_source):
     mujmal   = ['لا يكلف','الا وسعها','مجمل','مبهم','لا يكلف الله']
     mutafawit= ['أولي الأمر','يرجح','متفاوت','اطيعوا']
     asma_list = list(ARWIQA.keys())
-    has_asma  = any(clean(a) in t for a in asma_list)
-    has_cmd   = any(k in t for k in cmd)
-    has_prh   = any(k in t for k in prh)
+    has_asma  = any(word_in(clean(a)) for a in asma_list)
+    has_cmd   = any(word_in(k) for k in cmd)
+    has_prh   = any(word_in(k) for k in prh)
 
     # كشف الكلمة المسببة لتضمينها في التعليل
     def found_kw(kws):
         for k in kws:
-            if k in t: return k
+            if word_in(k): return k
         return ""
 
     if found_kw(mujmal):
@@ -720,9 +724,11 @@ def detect_multi_hukm(text, asl_source):
     cmd = CMD_TERMS
     prh = PRH_TERMS
     jawaz = JAWAZ_TERMS
-    found_cmd = [k for k in cmd if k in t]
-    found_prh = [k for k in prh if k in t]
-    found_jawaz = [k for k in jawaz if k in t]
+    _pad = " " + t + " "
+    def _win(term): return (" " + term + " ") in _pad
+    found_cmd = [k for k in cmd if _win(k)]
+    found_prh = [k for k in prh if _win(k)]
+    found_jawaz = [k for k in jawaz if _win(k)]
     rulings = []
     if found_cmd:
         hukm = "واجب" if asl_source == "الكتاب" else "مندوب"
@@ -740,8 +746,8 @@ def detect_multi_hukm(text, asl_source):
             "الحكم": hukm,
             "البيان": "ورد النهي في قوله \u00ab" + found_prh[0] + "\u00bb، والنهي المحكم من الكتاب حكمه التحريم ومن السنة يُجتنب."
         })
-    found_rukhsa = [k for k in RUKHSA_TERMS if k in t]
-    found_azima = [k for k in AZIMA_TERMS if k in t]
+    found_rukhsa = [k for k in RUKHSA_TERMS if _win(k)]
+    found_azima = [k for k in AZIMA_TERMS if _win(k)]
     if found_rukhsa:
         rulings.append({"النوع": "رخصة", "اللفظ": found_rukhsa[0], "الحكم": "رخصة", "البيان": "وردت الرخصة في قوله «" + found_rukhsa[0] + "»، والرخصة تخفيف عند العذر."})
     if found_azima:
