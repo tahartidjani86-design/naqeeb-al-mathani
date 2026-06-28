@@ -857,6 +857,9 @@ def tawil_engine(q, sb):
     all_names = {clean(k): k for k in ARWIQA.keys()}
     detected = []
     seen = set()
+    _padded_tawil = " " + qc + " "
+    def name_in(term):
+        return (" " + clean(term) + " ") in _padded_tawil
 
     def add(name_orig):
         nc = clean(name_orig)
@@ -879,24 +882,38 @@ def tawil_engine(q, sb):
     # بحث في كل كلمة
     for word in qc.split():
         if word in all_names: add(all_names[word])
-    # بحث في النص كاملاً
+    # بحث بمطابقة الكلمة الكاملة (لا يؤوّل إلا المعرّف بأل)
     for nc, orig in all_names.items():
-        if nc in qc: add(orig)
-    # الله والرب بأشكالهما المختلفة
-    if any(x in qc for x in ['الله','اله','اللهم','لله','الاهكم']): add('الله')
-    if any(x in qc for x in ['الرب','ربنا','ربكم','ربي','رب ']): add('الرب')
+        variants = [nc]
+        if nc.startswith("ال"):
+            for pre in ["و","ف","ب","ل","ت","ك"]:
+                variants.append(pre + nc)
+        if any(name_in(v) for v in variants): add(orig)
+    # الله المعرّفة بأل فقط (لا لله بلام الجر)
+    if any(name_in(x) for x in ['الله','اللهم','والله','فالله','بالله','تالله']): add('الله')
+    # الرب المعرّف بأل (للتأويل الاسمي)
+    if any(name_in(x) for x in ['الرب','والرب','فالرب','بالرب']): add('الرب')
+    # دلالة الربوبية المنفصلة (رب/ربي/ربك/ربكم/برب/لرب) - ليست تأويلاً اسمياً
+    _rab_forms = ['رب','ربي','ربك','ربكم','ربنا','ربهم','ربها','برب','لرب','وربك','وربكم','وربنا','فربك','فربكم']
+    _rububiyya = any(name_in(f) for f in _rab_forms)
 
     if not detected:
-        return {
+        _empty = {
             "الأسماء_المكتشفة": [],
-            "التأويل": "لم يُكتشف اسم من أسماء الله الحسنى في النص المدخل",
+            "التأويل": "لم يُكتشف اسم معرّف بأل من أسماء الله الحسنى في النص المدخل",
             "خاتمة": KHATIMA
         }
-    return {
+        if _rububiyya:
+            _empty["دلالة_الربوبية"] = "ورد ذكر الربّ في النص، وهو دالٌّ على شؤون الربوبية القائمة على شؤون العالمين، والربوبية وظيفةٌ لا اسمٌ مستقلٌّ يُؤوَّل."
+        return _empty
+    _out = {
         "الأسماء_المكتشفة": [d["الاسم"] for d in detected],
         "التأويل": detected,
         "خاتمة": KHATIMA
     }
+    if _rububiyya:
+        _out["دلالة_الربوبية"] = "ورد ذكر الربّ في النص، وهو دالٌّ على شؤون الربوبية القائمة على شؤون العالمين، والربوبية وظيفةٌ لا اسمٌ مستقلٌّ يُؤوَّل."
+    return _out
 
 # ============================================================
 # محرك الاستفسار
