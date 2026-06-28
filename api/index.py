@@ -614,6 +614,7 @@ def classify_dabit(text, asl_source):
     has_asma  = any(word_in(clean(a)) for a in asma_list)
     has_cmd   = any(word_in(k) for k in cmd)
     has_prh   = any(word_in(k) for k in prh)
+    has_jawaz = any(word_in(k) for k in jawaz_terms)
 
     # كشف الكلمة المسببة لتضمينها في التعليل
     def found_kw(kws):
@@ -633,6 +634,9 @@ def classify_dabit(text, asl_source):
             reasons.append(f"الضابط «لفظ محكم»: لاحتواء النص على أمر صريح (مثل «{found_kw(cmd)}»). والمحكم من الكتاب أمره واجب، ومن السنة أمره مندوب.")
         elif has_prh:
             reasons.append(f"الضابط «لفظ محكم»: لاحتواء النص على نهي صريح (مثل «{found_kw(prh)}»). والمحكم من الكتاب نهيه واجب الاجتناب، ومن السنة يُجتنب.")
+    elif has_jawaz:
+        dabits.append("لفظ الجواز")
+        reasons.append(f"الضابط «لفظ الجواز»: لورود ما يدل على الجواز في النص (مثل «{found_kw(jawaz_terms)}»)، وحكمه الجواز نظراً وضرورةً.")
     else:
         dabits.append("لفظ محكم خبري")
         reasons.append("الضابط «لفظ محكم خبري»: لأن اللفظ صريح لا يحتمل إلا معنى واحداً ولا يُصرف لغيره، وهو خبرٌ ليس فيه أمر ولا نهي، فالنص لا يحمل حكماً.")
@@ -682,6 +686,7 @@ def extract_hukm_nazari(text, dabits, branches, asl_source):
             if has_cmd: return "مندوب"
             if has_prh: return "يُجتنب"
             return "النص لا يحمل حكماً"
+    if "لفظ الجواز" in ds: return "جائز"
     if "لفظ مجمل" in ds: return "جائز"
     if "لفظ متفاوت" in ds: return "جائز"
     if "القياس" in ds and "عله" not in t and "علة" not in t:
@@ -713,6 +718,7 @@ def extract_hukm_darori(text, nazari, dabits, branches, asl_source):
         if nazari == "مستحيل": return "حرام"
         if nazari == "مندوب":  return "مندوب عيني"
         if nazari == "يُجتنب": return "مكروه"
+    if "لفظ الجواز" in ds: return "جائز"
     if "لفظ مجمل" in ds or "لفظ متفاوت" in ds: return "مباح"
     if "الإجماع" in ds: return "فرض كفاية"
     if "النسخ" in ds or "السبب" in ds: return "فرض عين"
