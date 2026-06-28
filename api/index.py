@@ -406,7 +406,7 @@ def search_hadith(q, sb):
                         score = sum(1 for w in words if w in rc)
                         candidates[fp] = {
                             "source": row.get("source", "حديث"),
-                            "text":   matn[:300],
+                            "text":   matn[:1200],
                             "score":  score
                         }
             except: pass
@@ -825,7 +825,7 @@ def istinbat_engine(q, sb):
     if hadith:
         hadith_display = "أحاديث متصلة:\n"
         for h in hadith:
-            hadith_display += f"• {h['source']}: {h['text'][:150]}...\n"
+            hadith_display += f"• {h['source']}: {h['text']}\n"
 
     # ٦. التخريج — من المنجم والإيضاح حصراً
     takhreej_manjam = search_manjam(q, sb)
