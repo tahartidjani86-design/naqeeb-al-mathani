@@ -332,9 +332,10 @@ async def muhawir(request: Request):
         grounding = build_grounding(sources)
 
         # بطاقةُ التحليل: تُستدعى آلةُ الأحكام عند المسائل الحكميّة فقط (غير حاسمة)
+        # تُبنى من سؤال المستخدم نفسه ليطابق محرّك الاستنباط المستقلّ
         card = None
-        if sources and looks_like_ruling(query):
-            analysis = await fetch_analysis(sources[0]["النص"])
+        if looks_like_ruling(query):
+            analysis = await fetch_analysis(query)
             card = build_analysis_card(analysis)
             if card:
                 grounding += "\n\n" + card["text"]
