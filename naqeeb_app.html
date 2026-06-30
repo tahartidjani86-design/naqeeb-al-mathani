@@ -10,482 +10,450 @@
 <title>نقيب المثاني</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap');
-
   :root {
-    --bg-deep:    #0d1b2a;
-    --bg-card:    #112236;
-    --bg-input:   #0a1628;
-    --gold:       #c9a84c;
-    --gold-light: #e8c97a;
-    --teal:       #2a9d8f;
-    --teal-light: #3ec9b9;
-    --text-main:  #e8e0d0;
-    --text-muted: #8a9ab0;
-    --border:     #1e3a5f;
-    --radius:     14px;
+    --bg-deep:#0d1b2a;--bg-card:#112236;--bg-input:#0a1628;
+    --gold:#c9a84c;--gold-light:#e8c97a;--teal:#2a9d8f;--teal-light:#3ec9b9;
+    --text-main:#e8e0d0;--text-muted:#8a9ab0;--border:#1e3a5f;--radius:14px;
   }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg-deep);color:var(--text-main);font-family:'Cairo',sans-serif;
+       min-height:100vh;display:flex;flex-direction:column;padding-bottom:60px;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* HEADER */
+  header{background:linear-gradient(135deg,#0a1628,#112236);border-bottom:1px solid var(--border);
+         padding:14px 20px 10px;text-align:center;position:sticky;top:0;z-index:100;}
+  .logo-title{font-family:'Amiri',serif;font-size:24px;color:var(--gold-light);letter-spacing:1px;}
+  .logo-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .books-row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+  .book-btn{display:inline-block;font-size:11px;
+           color:var(--gold-light);text-decoration:none;
+           background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);
+           border-radius:20px;padding:5px 14px;transition:all 0.2s;
+           font-family:'Cairo',sans-serif;white-space:nowrap;}
+  .book-btn:hover{background:rgba(201,168,76,0.22);border-color:var(--gold);}
 
-  body {
-    background: var(--bg-deep);
-    color: var(--text-main);
-    font-family: 'Cairo', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  /* MODE TABS */
+  .mode-tabs{display:flex;gap:0;margin:12px 16px 0;border-radius:10px;overflow:hidden;
+             border:1px solid var(--border);}
+  .mode-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;
+            cursor:pointer;background:var(--bg-card);color:var(--text-muted);
+            transition:all 0.2s;border:none;font-family:'Cairo',sans-serif;}
+  .mode-tab.active{background:var(--teal);color:white;}
+  .mode-tab:first-child{border-radius:10px 0 0 10px;}
+  .mode-tab:last-child{border-radius:0 10px 10px 0;}
 
-  /* ===== HEADER ===== */
-  header {
-    background: linear-gradient(135deg, #0a1628 0%, #112236 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 20px 14px;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+  /* MAIN */
+  main{flex:1;padding:14px 16px;max-width:680px;margin:0 auto;width:100%;}
 
-  .logo-line {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
+  /* INPUT */
+  .input-section{background:var(--bg-card);border:1px solid var(--border);
+                 border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+  .input-label{font-size:12px;color:var(--gold);margin-bottom:8px;display:flex;
+               align-items:center;gap:6px;}
+  .input-label::before{content:'';display:inline-block;width:3px;height:14px;
+                       background:var(--gold);border-radius:2px;}
+  .input-row{display:flex;gap:8px;align-items:flex-start;}
+  textarea{flex:1;background:var(--bg-input);border:1px solid var(--border);
+           border-radius:10px;color:var(--text-main);font-family:'Amiri',serif;
+           font-size:17px;line-height:1.8;padding:10px 12px;resize:none;
+           min-height:80px;outline:none;transition:border-color 0.2s;}
+  textarea:focus{border-color:var(--teal);}
+  textarea::placeholder{color:var(--text-muted);font-size:14px;font-family:'Cairo',sans-serif;}
+  .clear-btn{background:var(--bg-input);border:1px solid var(--border);border-radius:8px;
+             color:var(--text-muted);padding:8px 10px;cursor:pointer;font-size:16px;
+             flex-shrink:0;transition:all 0.2s;align-self:flex-start;}
+  .clear-btn:hover{color:var(--gold);border-color:var(--gold);}
 
-  .logo-ornament {
-    color: var(--gold);
-    font-size: 18px;
-    opacity: 0.7;
-  }
+  /* BUTTONS */
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--teal),#1a7a6e);
+               color:white;border:none;border-radius:10px;padding:13px;
+               font-family:'Cairo',sans-serif;font-size:15px;font-weight:600;
+               cursor:pointer;margin-top:10px;transition:all 0.2s;
+               display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary:active{transform:scale(0.98);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);
+           border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
 
-  header h1 {
-    font-family: 'Amiri', serif;
-    font-size: 22px;
-    color: var(--gold-light);
-    letter-spacing: 1px;
-  }
+  /* CARDS */
+  .engine-card{background:var(--bg-card);border:1px solid var(--border);
+               border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+  .engine-header{padding:11px 14px;display:flex;align-items:center;gap:10px;
+                 cursor:pointer;user-select:none;}
+  .engine-icon{width:30px;height:30px;border-radius:8px;display:flex;
+               align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .icon-istinbat{background:rgba(201,168,76,0.15);}
+  .icon-tawil{background:rgba(42,157,143,0.15);}
+  .icon-istifsar{background:rgba(90,120,180,0.15);}
+  .engine-title{flex:1;font-size:13px;font-weight:600;}
+  .engine-subtitle{font-size:11px;color:var(--text-muted);margin-top:1px;}
+  .chevron{color:var(--text-muted);font-size:11px;transition:transform 0.2s;}
+  .engine-body{padding:0 14px 12px;border-top:1px solid var(--border);}
+  .engine-header.open .chevron{transform:rotate(180deg);}
 
-  header p {
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-  }
+  /* DATA ROWS */
+  .data-row{display:flex;justify-content:space-between;align-items:flex-start;
+            padding:9px 0;border-bottom:1px solid rgba(30,58,95,0.5);gap:10px;}
+  .data-row:last-child{border-bottom:none;}
+  .data-label{font-size:11px;color:var(--text-muted);flex-shrink:0;padding-top:2px;min-width:85px;}
+  .data-value{font-size:13px;color:var(--text-main);text-align:right;flex:1;line-height:1.6;}
 
-  /* ===== MAIN ===== */
-  main {
-    flex: 1;
-    padding: 16px;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-  }
+  /* BADGES */
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;
+         font-weight:600;margin:2px;}
+  .badge-gold{background:rgba(201,168,76,0.15);color:var(--gold-light);border:1px solid rgba(201,168,76,0.3);}
+  .badge-teal{background:rgba(42,157,143,0.15);color:var(--teal-light);border:1px solid rgba(42,157,143,0.3);}
+  .badge-blue{background:rgba(90,120,180,0.15);color:#8aabf0;border:1px solid rgba(90,120,180,0.3);}
+  .badge-red{background:rgba(220,80,80,0.15);color:#f08a8a;border:1px solid rgba(220,80,80,0.3);}
 
-  /* ===== INPUT SECTION ===== */
-  .input-section {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 14px;
-  }
+  /* NAME CARD */
+  .name-card{background:var(--bg-input);border:1px solid var(--border);
+             border-radius:10px;padding:12px 14px;margin-top:8px;}
+  .name-title{font-family:'Amiri',serif;font-size:20px;color:var(--gold-light);
+              margin-bottom:8px;text-align:center;}
+  .name-attr{font-size:12px;color:var(--text-muted);margin-bottom:3px;line-height:1.6;}
+  .name-attr span{color:var(--text-main);font-size:13px;}
 
-  .input-label {
-    font-size: 12px;
-    color: var(--gold);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  /* ANSWER CARD */
+  .answer-card{background:var(--bg-input);border-right:3px solid var(--teal);
+               border-radius:0 8px 8px 0;padding:10px 12px;margin-top:8px;
+               font-size:13px;line-height:1.8;}
+  .answer-source{font-size:11px;color:var(--gold);margin-bottom:4px;font-weight:600;}
+  .answer-locus{font-size:10.5px;color:var(--teal-light);margin-bottom:6px;
+                background:rgba(42,157,143,0.08);border-radius:6px;
+                padding:3px 8px;display:inline-block;}
 
-  .input-label::before {
-    content: '';
-    display: inline-block;
-    width: 3px;
-    height: 14px;
-    background: var(--gold);
-    border-radius: 2px;
-  }
+  /* HADITH CARD */
+  .hadith-card{background:var(--bg-input);border-right:3px solid var(--gold);
+               border-radius:0 8px 8px 0;padding:10px 12px;margin-top:8px;}
+  .hadith-source{font-size:11px;color:var(--teal-light);margin-bottom:4px;font-weight:600;}
+  .hadith-text{font-size:13px;line-height:1.9;color:var(--text-main);font-family:'Amiri',serif;}
 
-  textarea {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text-main);
-    font-family: 'Amiri', serif;
-    font-size: 17px;
-    line-height: 1.8;
-    padding: 12px 14px;
-    resize: none;
-    min-height: 90px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
+  /* NASS BOX */
+  .nass-box{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);
+            border-radius:8px;padding:10px 12px;margin:6px 0;
+            font-family:'Amiri',serif;font-size:16px;line-height:2;
+            color:var(--text-main);text-align:center;}
 
-  textarea:focus {
-    border-color: var(--teal);
-  }
+  /* FOOTER KHATIMA */
+  .khatima-footer{position:fixed;bottom:0;left:0;right:0;
+                  background:linear-gradient(135deg,#0a1628,#0d1b2a);
+                  border-top:1px solid var(--border);
+                  padding:8px 16px;text-align:center;
+                  font-size:10px;color:var(--text-muted);line-height:1.5;}
 
-  textarea::placeholder {
-    color: var(--text-muted);
-    font-size: 14px;
-    font-family: 'Cairo', sans-serif;
-  }
+  /* ERROR */
+  .error-box{background:rgba(220,80,80,0.1);border:1px solid rgba(220,80,80,0.3);
+             border-radius:10px;padding:12px;color:#f08a8a;font-size:13px;
+             text-align:center;margin-top:10px;display:none;}
 
-  /* ===== BUTTONS ===== */
-  .btn-primary {
-    width: 100%;
-    background: linear-gradient(135deg, var(--teal) 0%, #1a7a6e 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 14px;
-    font-family: 'Cairo', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 12px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-  }
+  /* EMPTY */
+  .empty-state{text-align:center;padding:30px 20px;color:var(--text-muted);}
+  .empty-state .icon{font-size:44px;margin-bottom:10px;opacity:0.4;}
+  .empty-state p{font-size:13px;line-height:1.7;}
 
-  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* REASON BOX */
+  .reason-box{margin-top:8px;background:rgba(42,157,143,0.07);
+              border-right:2px solid var(--teal);border-radius:0 6px 6px 0;
+              padding:8px 10px;}
+  .reason-item{font-size:11.5px;color:var(--text-muted);line-height:1.7;
+               margin-bottom:4px;}
+  .reason-item:last-child{margin-bottom:0;}
 
-  /* ===== SPINNER ===== */
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  #results{display:none;}
 
-  /* ===== RESULTS ===== */
-  #results { display: none; }
-
-  .engine-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-
-  .engine-header {
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .engine-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-
-  .icon-istinbat { background: rgba(201,168,76,0.15); }
-  .icon-tawil    { background: rgba(42,157,143,0.15); }
-  .icon-istifsar { background: rgba(90,120,180,0.15); }
-
-  .engine-title {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
-  }
-
-  .engine-subtitle {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 1px;
-  }
-
-  .chevron {
-    color: var(--text-muted);
-    font-size: 12px;
-    transition: transform 0.2s;
-  }
-
-  .engine-body {
-    padding: 0 16px 14px;
-    border-top: 1px solid var(--border);
-    display: none;
-  }
-
-  .engine-body.open { display: block; }
-  .engine-header.open .chevron { transform: rotate(180deg); }
-
-  /* ===== DATA ROWS ===== */
-  .data-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(30,58,95,0.5);
-    gap: 12px;
-  }
-
-  .data-row:last-child { border-bottom: none; }
-
-  .data-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-    padding-top: 2px;
-    min-width: 90px;
-  }
-
-  .data-value {
-    font-size: 13px;
-    color: var(--text-main);
-    text-align: right;
-    flex: 1;
-    line-height: 1.6;
-  }
-
-  /* ===== BADGES ===== */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    margin: 2px;
-  }
-
-  .badge-gold   { background: rgba(201,168,76,0.15); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
-  .badge-teal   { background: rgba(42,157,143,0.15); color: var(--teal-light); border: 1px solid rgba(42,157,143,0.3); }
-  .badge-blue   { background: rgba(90,120,180,0.15); color: #8aabf0; border: 1px solid rgba(90,120,180,0.3); }
-  .badge-red    { background: rgba(220,80,80,0.15);  color: #f08a8a; border: 1px solid rgba(220,80,80,0.3); }
-
-  /* ===== NAME CARD ===== */
-  .name-card {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-top: 10px;
-  }
-
-  .name-title {
-    font-family: 'Amiri', serif;
-    font-size: 20px;
-    color: var(--gold-light);
-    margin-bottom: 8px;
-    text-align: center;
-  }
-
-  .name-attr {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    line-height: 1.6;
-  }
-
-  .name-attr span {
-    color: var(--text-main);
-    font-size: 13px;
-  }
-
-  /* ===== ANSWER CARD ===== */
-  .answer-card {
-    background: var(--bg-input);
-    border-right: 3px solid var(--teal);
-    border-radius: 0 8px 8px 0;
-    padding: 10px 12px;
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.8;
-    color: var(--text-main);
-  }
-
-  .answer-source {
-    font-size: 11px;
-    color: var(--gold);
-    margin-bottom: 4px;
-    font-weight: 600;
-  }
-
-  /* ===== ERROR ===== */
-  .error-box {
-    background: rgba(220,80,80,0.1);
-    border: 1px solid rgba(220,80,80,0.3);
-    border-radius: 10px;
-    padding: 14px;
-    color: #f08a8a;
-    font-size: 13px;
-    text-align: center;
-    margin-top: 14px;
-    display: none;
-  }
-
-  /* ===== EMPTY STATE ===== */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-  }
-
-  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
-  .empty-state p { font-size: 13px; line-height: 1.7; }
-
-  /* ===== FOOTER ===== */
-  footer {
-    text-align: center;
-    padding: 14px;
-    font-size: 10px;
-    color: var(--text-muted);
-    border-top: 1px solid var(--border);
-    opacity: 0.6;
-  }
+  /* CHAT — المُحاوَرة */
+  .chat-thread{display:none;margin-bottom:8px;}
+  .chat-msg{margin-bottom:13px;}
+  .chat-label{font-size:10.5px;color:var(--text-muted);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+  .bubble{padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.95;white-space:pre-wrap;}
+  .bubble.user{background:var(--bg-input);border:1px solid var(--border);color:var(--text-main);}
+  .bubble.bot{background:var(--bg-card);border-right:3px solid var(--teal);
+              border-radius:0 12px 12px 0;color:var(--text-main);
+              font-family:'Amiri',serif;font-size:16px;}
+  .chat-src{margin-top:9px;padding-top:7px;border-top:1px dashed var(--border);}
+  .chat-src .t{font-size:10px;color:var(--gold);margin-bottom:4px;}
+  .chat-src-item{font-size:10.5px;color:var(--teal-light);margin-bottom:3px;line-height:1.6;}
+  .typing{color:var(--text-muted);font-size:12px;padding:5px 2px;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo-line">
-    <span class="logo-ornament">❋</span>
-    <h1>نقيب المثاني</h1>
-    <span class="logo-ornament">❋</span>
+  <div class="logo-title">❋ نقيب المثاني ❋</div>
+  <div class="logo-sub">خوارزميات الوحي</div>
+  <div class="books-row">
+    <a href="manjam.pdf" target="_blank" class="book-btn" title="تحميل كتاب منجم الأصول">
+      📕 منجم الأصول
+    </a>
+    <a href="idah.pdf" target="_blank" class="book-btn" title="تحميل كتاب الإيضاح المحايد">
+      📗 الإيضاح المحايد
+    </a>
   </div>
-  <p>خوارزميات الوحي · استنباط · تأويل · استفسار</p>
 </header>
+
+<!-- أزرار التبديل بين المحركين -->
+<div class="mode-tabs">
+  <button class="mode-tab active" id="tab-istinbat" onclick="setMode('istinbat')">
+    ⚖️ الاستنباط والتأويل
+  </button>
+  <button class="mode-tab" id="tab-istifsar" onclick="setMode('istifsar')">
+    📚 الاستفسار
+  </button>
+  <button class="mode-tab" id="tab-muhawara" onclick="setMode('muhawara')">
+    💬 المُحاوَرة
+  </button>
+</div>
 
 <main>
   <!-- Input -->
   <div class="input-section">
-    <div class="input-label">أدخل النص</div>
-    <textarea id="queryInput" placeholder="أدخل آية كريمة أو نصاً شرعياً أو سؤالاً..." rows="3"></textarea>
-    <button class="btn-primary" id="searchBtn" onclick="doSearch()">
+    <div class="input-label" id="input-label">أدخل النص أو الآية</div>
+    <div class="input-row">
+      <textarea id="queryInput" placeholder="أدخل آية كريمة أو نصاً شرعياً..." rows="3"></textarea>
+      <button class="clear-btn" onclick="clearInput()" title="مسح النص">✕</button>
+    </div>
+    <button class="btn-primary" id="searchBtn" onclick="onSubmit()">
       <div class="spinner" id="spinner"></div>
       <span id="btnText">استنباط وتأويل</span>
     </button>
   </div>
 
-  <!-- Error -->
   <div class="error-box" id="errorBox"></div>
 
-  <!-- Results -->
+  <!-- النتائج -->
   <div id="results">
 
     <!-- استنباط -->
-    <div class="engine-card">
-      <div class="engine-header" onclick="toggleCard(this)">
+    <div class="engine-card" id="card-istinbat">
+      <div class="engine-header open" onclick="toggleCard(this)">
         <div class="engine-icon icon-istinbat">⚖️</div>
         <div>
           <div class="engine-title">محرك الاستنباط</div>
-          <div class="engine-subtitle">الأصل · الضابط · الحكم</div>
+          <div class="engine-subtitle">الأصل · الأصول · الفروع · الضابط · الأحكام</div>
         </div>
         <span class="chevron">▼</span>
       </div>
-      <div class="engine-body open" id="istinbat-body">
-        <div style="padding-top:10px">جارٍ التحميل...</div>
-      </div>
+      <div class="engine-body" id="istinbat-body" style="display:block"></div>
     </div>
 
     <!-- تأويل -->
-    <div class="engine-card">
-      <div class="engine-header" onclick="toggleCard(this)">
+    <div class="engine-card" id="card-tawil">
+      <div class="engine-header open" onclick="toggleCard(this)">
         <div class="engine-icon icon-tawil">🔮</div>
         <div>
           <div class="engine-title">محرك التأويل</div>
-          <div class="engine-subtitle">الأسماء الحسنى · الأروقة · التحلي</div>
+          <div class="engine-subtitle">الأسماء الحسنى · الأروقة الثمانية · التحلي والتخلي</div>
         </div>
         <span class="chevron">▼</span>
       </div>
-      <div class="engine-body open" id="tawil-body">
-        <div style="padding-top:10px">جارٍ التحميل...</div>
-      </div>
+      <div class="engine-body" id="tawil-body" style="display:block"></div>
     </div>
 
     <!-- استفسار -->
-    <div class="engine-card">
-      <div class="engine-header" onclick="toggleCard(this)">
+    <div class="engine-card" id="card-istifsar">
+      <div class="engine-header open" onclick="toggleCard(this)">
         <div class="engine-icon icon-istifsar">📚</div>
         <div>
           <div class="engine-title">محرك الاستفسار</div>
-          <div class="engine-subtitle">مطابقات المصادر</div>
+          <div class="engine-subtitle">إجابات من منجم الأصول والإيضاح المحايد</div>
         </div>
         <span class="chevron">▼</span>
       </div>
-      <div class="engine-body open" id="istifsar-body">
-        <div style="padding-top:10px">جارٍ التحميل...</div>
-      </div>
+      <div class="engine-body" id="istifsar-body" style="display:block"></div>
     </div>
 
   </div>
+
+  <!-- خيط المُحاوَرة -->
+  <div class="chat-thread" id="muhawaraThread"></div>
 
   <!-- Empty state -->
   <div class="empty-state" id="emptyState">
     <div class="icon">📖</div>
-    <p>أدخل آية كريمة أو نصاً شرعياً<br>ليبدأ المحرك في الاستنباط والتأويل</p>
+    <p id="empty-hint">أدخل آية كريمة أو نصاً شرعياً<br>ليبدأ محرك الاستنباط والتأويل</p>
   </div>
-
 </main>
 
-<footer>نقيب المثاني © ١٤٤٧ هـ · محرك الاستنباط والتأويل</footer>
+<!-- الخاتمة الثابتة في الأسفل -->
+<div class="khatima-footer">
+  هذا والله أعلم، ويبقى الذكاء الاصطناعي قاصراً عن مزايا المدارك البشرية، وكذلك يمكن أن يخطئ أحياناً، فإن وقع خطأ فهو في المبرمج وليس في المنهج.
+  &nbsp;|&nbsp; نقيب المثاني © ١٤٤٧ هـ
+</div>
 
 <script>
-const API_URL = 'https://naqeeb-al-mathani-14xx.vercel.app/api/index';
+const API_URL = 'https://naqeeb-al-mathani.vercel.app/api/index';
+const API_MUHAWIR = 'https://naqeeb-al-mathani.vercel.app/api/muhawir';
+let currentMode = 'istinbat';
+let muhawaraHistory = [];
+
+function onSubmit() {
+  if (currentMode === 'muhawara') sendMuhawara();
+  else doSearch();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  ['istinbat','istifsar','muhawara'].forEach(m =>
+    document.getElementById('tab-'+m).classList.toggle('active', mode === m));
+
+  const thread = document.getElementById('muhawaraThread');
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('errorBox').style.display = 'none';
+  thread.style.display = (mode === 'muhawara' && muhawaraHistory.length) ? 'block' : 'none';
+
+  if (mode === 'muhawara') {
+    document.getElementById('input-label').textContent = 'حاوِر المنصّة';
+    document.getElementById('btnText').textContent = 'إرسال';
+    document.querySelector('textarea').placeholder = 'اطرح مسألةً، يُجِبْك المحاوِر من الكتابين بمنهج المؤلِّف...';
+    document.getElementById('empty-hint').innerHTML = 'ابدأ المحاوَرة<br>يُجيبك المحاوِر من «منجم الأصول» و«الإيضاح المحايد»';
+    document.getElementById('emptyState').style.display = muhawaraHistory.length ? 'none' : 'block';
+  } else if (mode === 'istifsar') {
+    document.getElementById('input-label').textContent = 'اكتب سؤالك';
+    document.getElementById('btnText').textContent = 'استفسار';
+    document.querySelector('textarea').placeholder = 'اكتب سؤالك عن المنهجية أو طلب من الكتابين...';
+    document.getElementById('empty-hint').innerHTML = 'اكتب سؤالاً للإجابة عليه<br>من كتاب منجم الأصول أو الإيضاح المحايد';
+    document.getElementById('emptyState').style.display = 'block';
+  } else {
+    document.getElementById('input-label').textContent = 'أدخل النص أو الآية';
+    document.getElementById('btnText').textContent = 'استنباط وتأويل';
+    document.querySelector('textarea').placeholder = 'أدخل آية كريمة أو نصاً شرعياً...';
+    document.getElementById('empty-hint').innerHTML = 'أدخل آية كريمة أو نصاً شرعياً<br>ليبدأ محرك الاستنباط والتأويل';
+    document.getElementById('emptyState').style.display = 'block';
+  }
+}
+
+function clearInput() {
+  document.getElementById('queryInput').value = '';
+  document.getElementById('queryInput').focus();
+  document.getElementById('errorBox').style.display = 'none';
+  if (currentMode === 'muhawara') {
+    muhawaraHistory = [];
+    const t = document.getElementById('muhawaraThread');
+    t.innerHTML = ''; t.style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+  } else {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+  }
+}
 
 function toggleCard(header) {
   header.classList.toggle('open');
   const body = header.nextElementSibling;
-  body.classList.toggle('open');
+  body.style.display = body.style.display === 'none' ? 'block' : 'none';
 }
 
 function setLoading(on) {
   document.getElementById('spinner').style.display = on ? 'block' : 'none';
-  document.getElementById('btnText').textContent = on ? 'جارٍ التحليل...' : 'استنباط وتأويل';
+  const label = currentMode === 'muhawara' ? 'إرسال'
+              : (currentMode === 'istifsar' ? 'استفسار' : 'استنباط وتأويل');
+  document.getElementById('btnText').textContent = on ? 'جارٍ التحليل...' : label;
   document.getElementById('searchBtn').disabled = on;
 }
 
 function badge(text, type='gold') {
+  if (!text) return '';
   return `<span class="badge badge-${type}">${text}</span>`;
 }
 
-function renderIstinbat(data) {
-  const d = data['استنباط'] || data.istinbat || {};
-  const asl     = d['الأصل']            || d.asl_type    || '—';
-  const usul    = d['الأصول']           || d.asl_source  || '—';
-  const furoo   = d['الفروع']           || d.branch_context || [];
-  const shuba   = d['الشعبة']           || '—';
-  const dabit   = d['الضابط']           || d.dabit_rule  || [];
-  const nazari  = d['الحكم_النظري']     || d.hukm_nazari || '—';
-  const darori  = d['الحكم_الضروري']    || d.hukm_darori_illa || '—';
-  const hadith  = d['الأحاديث_المتصلة'] || d.sunnah_seerah_match || '—';
-  const khatima = d['خاتمة']            || '';
-  const usulColor = usul.includes('الكتاب') ? 'gold' : usul.includes('السنة') ? 'teal' : 'blue';
+/* ===== رندر الاستنباط ===== */
+function renderIstinbat(d) {
+  const asl    = d['الأصل']           || '—';
+  const usul   = d['الأصول']          || '—';
+  const furoo  = d['الفروع']          || [];
+  const shuba  = d['الشعبة']          || '—';
+  const dabit  = d['الضابط']          || [];
+  const dabitReasons = d['تعليل_الضابط'] || [];
+  const nazari = d['الحكم_النظري']    || '—';
+  const hukmReason = d['تعليل_الحكم'] || '';
+  const darori = d['الحكم_الضروري']   || '—';
+  const hadith = d['الأحاديث_المتصلة'] || '';
+  const takhr  = d['التخريج']         || '';
+
+  // استخراج نص الآية من الأصول إن وُجد
+  const usulLines = usul.split('\n');
+  const usulTitle = usulLines[0] || '';
+  const nassText  = usulLines[1] || '';
+  const marja     = usulLines[2] || '';
+
+  let nassHtml = '';
+  if (nassText && nassText.length > 5) {
+    nassHtml = `<div class="nass-box">${nassText}</div>`;
+  }
+
+  // أحاديث — إزالة أسانيد الرواة وعرض المتن مع المصدر
+  let hadithHtml = '';
+  if (hadith && hadith !== 'لم توجد أحاديث مرتبطة في قاعدة البيانات') {
+    const lines = hadith.split('\n').filter(l => l.trim() && l.startsWith('•'));
+    lines.forEach(line => {
+      // نمط مرن: المصدر ثم النص، مع أو بدون رقم
+      const match = line.match(/•\s*([^:]+):\s*(.+)/);
+      if (match) {
+        const source = match[1].trim();
+        let text = match[2].trim().replace(/^["\d,\s]+/, '').replace(/"$/, '');
+        // محاولة إبراز المتن بعد الإسناد إن أمكن (وإلا نعرض النص كما هو)
+        const hadithMatch = text.match(/(?:قال رسول الله|قال النبي|أن النبي|أن رسول الله|عن النبي|سمعت النبي|سمعت رسول الله).{0,400}/);
+        if (hadithMatch) text = hadithMatch[0];
+        if (text.length > 8) {
+          hadithHtml += `
+            <div class="hadith-card">
+              <div class="hadith-source">${source}</div>
+              <div class="hadith-text">${text}</div>
+            </div>`;
+        }
+      }
+    });
+  }
+  if (!hadithHtml) {
+    hadithHtml = `<div style="color:var(--text-muted);font-size:12px;padding:6px 0">لم توجد أحاديث مرتبطة</div>`;
+  }
+
+  const nazariColor = nazari==='واجب'?'gold':nazari==='مستحيل'?'red':'teal';
+  const daroriColor = darori==='فرض عين'||darori==='فرض كفاية'?'gold':darori==='حرام'?'red':'teal';
+
+  // الأحكام المتعددة (أمر + نهي + جواز في نص واحد)
+  const multiRulings = d['الأحكام_المتعددة'] || [];
+  let multiHtml = '';
+  if (multiRulings.length > 1) {
+    const typeColor = {'أمر':'gold','نهي':'red','جواز':'teal'};
+    const items = multiRulings.map(r => `
+      <div style="background:var(--bg-input);border-right:3px solid ${r['النوع']==='نهي'?'#dc5050':r['النوع']==='أمر'?'var(--gold)':'var(--teal)'};border-radius:0 8px 8px 0;padding:8px 12px;margin-top:6px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          ${badge(r['النوع'], typeColor[r['النوع']]||'blue')}
+          <span style="font-family:'Amiri',serif;font-size:15px;color:var(--gold-light)">«${r['اللفظ']||''}»</span>
+          <span style="margin-right:auto">${badge(r['الحكم'], typeColor[r['النوع']]||'blue')}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.7">${r['البيان']||''}</div>
+      </div>`).join('');
+    multiHtml = `
+      <div class="data-row">
+        <div class="data-label">تعدد الأحكام</div>
+        <div class="data-value">
+          <div style="font-size:11.5px;color:var(--gold-light);margin-bottom:4px">حمل النص أكثر من حكم:</div>
+          ${items}
+        </div>
+      </div>`;
+  }
+
   return `
+    <div style="padding-top:10px">
     <div class="data-row">
       <div class="data-label">الأصل</div>
-      <div class="data-value" style="font-size:13px">${asl}</div>
+      <div class="data-value">${badge(asl, asl==='وحي'?'gold':'blue')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الأصول</div>
-      <div class="data-value">${badge(usul, usulColor)}</div>
+      <div class="data-value">
+        ${badge(usulTitle,'teal')}
+        ${nassHtml}
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${marja}</div>
+      </div>
     </div>
     <div class="data-row">
       <div class="data-label">الفروع</div>
-      <div class="data-value">${(Array.isArray(furoo)?furoo:[furoo]).map(b => badge(b,'teal')).join(' ')}</div>
+      <div class="data-value">${(Array.isArray(furoo)?furoo:[furoo]).map(b=>badge(b,'teal')).join(' ')}</div>
     </div>
     <div class="data-row">
       <div class="data-label">الشعبة</div>
@@ -493,64 +461,70 @@ function renderIstinbat(data) {
     </div>
     <div class="data-row">
       <div class="data-label">الضابط</div>
-      <div class="data-value">${(Array.isArray(dabit)?dabit:[dabit]).map(b => badge(b,'blue')).join(' ')}</div>
+      <div class="data-value">
+        ${(Array.isArray(dabit)?dabit:[dabit]).map(b=>badge(b,'blue')).join(' ')}
+        ${dabitReasons.length ? `<div class="reason-box">${dabitReasons.map(r=>`<div class="reason-item">📌 ${r}</div>`).join('')}</div>` : ''}
+      </div>
     </div>
     <div class="data-row">
       <div class="data-label">الحكم النظري</div>
-      <div class="data-value">${badge(nazari, nazari==='واجب'?'gold':nazari==='مستحيل'?'red':'teal')}</div>
+      <div class="data-value">
+        ${badge(nazari,nazariColor)}
+        ${hukmReason ? `<div class="reason-box"><div class="reason-item">⚖️ ${hukmReason}</div></div>` : ''}
+      </div>
     </div>
     <div class="data-row">
       <div class="data-label">الحكم الضروري</div>
-      <div class="data-value">${badge(darori,'gold')}</div>
+      <div class="data-value">${badge(darori,daroriColor)}</div>
+    </div>
+    ${multiHtml}
+    <div class="data-row">
+      <div class="data-label">الأحاديث</div>
+      <div class="data-value">${hadithHtml}</div>
     </div>
     <div class="data-row">
-      <div class="data-label">الأحاديث المتصلة</div>
-      <div class="data-value" style="font-size:12px;color:var(--text-muted);white-space:pre-line">${hadith}</div>
+      <div class="data-label">التخريج</div>
+      <div class="data-value" style="font-size:12px;color:var(--text-muted);white-space:pre-line">${takhr}</div>
     </div>
-    <div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>
-  `;
+    </div>`;
 }
 
-function renderTawil(data) {
-  const d = data['تأويل'] || data.tawil || {};
-  const names = d['الأسماء_المكتشفة'] || d.names_found || [];
-  const interp = d['التأويل'] || d.interpretation || [];
-  const khatima = d['خاتمة'] || '';
-  if (!names.length) {
+/* ===== رندر التأويل ===== */
+function renderTawil(d) {
+  const names  = d['الأسماء_المكتشفة'] || [];
+  const interp = d['التأويل'] || [];
+  if (!names.length || typeof interp === 'string') {
     return `<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم يُكتشف اسم من الأسماء الحسنى في النص</div>`;
   }
-  const cards = (Array.isArray(interp) ? interp : []).map(n => `
+  return (Array.isArray(interp)?interp:[]).map(n => `
     <div class="name-card">
-      <div class="name-title">${n['الاسم']||n.asm_name||''}</div>
-      ${n['ملاحظة_خاصة'] ? `<div style="text-align:center;margin-bottom:8px">${badge(n['ملاحظة_خاصة'],'gold')}</div>` : ''}
-      <div class="name-attr">المرتبة: <span>${n['المرتبة']||n.martaba||'—'}</span></div>
-      <div class="name-attr">الرواق: <span>${n['الرواق']||n.rwaq||'—'}</span></div>
-      <div class="name-attr">الباب: <span>${n['الباب']||n.bab||'—'}</span></div>
-      <div class="name-attr">الركن: <span>${n['الركن']||n.rkn||'—'}</span></div>
-      <div class="name-attr" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-        حكم التحلي/التخلي: <span style="color:var(--gold-light)">${n['حكم_التحلي_التخلي']||n.tahalli||'—'}</span>
+      <div class="name-title">${n['الاسم']||''}</div>
+      ${n['ملاحظة_خاصة'] ? `<div style="text-align:center;margin-bottom:6px">${badge(n['ملاحظة_خاصة'],'gold')}</div>` : ''}
+      <div class="name-attr">المرتبة: <span>${n['المرتبة']||'—'}</span></div>
+      <div class="name-attr">الرواق: <span>${n['الرواق']||'—'}</span></div>
+      <div class="name-attr">الباب: <span>${n['الباب']||'—'}</span></div>
+      <div class="name-attr">الركن: <span>${n['الركن']||'—'}</span></div>
+      <div class="name-attr" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+        حكم التحلي/التخلي: <span style="color:var(--gold-light)">${n['حكم_التحلي_التخلي']||'—'}</span>
       </div>
-    </div>
-  `).join('');
-  return cards + `<div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>`;
+    </div>`).join('');
 }
 
-function renderIstifsar(data) {
-  const d = data['استفسار'] || data.istifsar || {};
-  const answers = d['الإجابات'] || d.answers || [];
-  const khatima = d['خاتمة'] || '';
+/* ===== رندر الاستفسار ===== */
+function renderIstifsar(d) {
+  const answers = d['الإجابات'] || [];
   if (!answers.length) {
-    return '<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم توجد مطابقات في المصادر</div>';
+    return `<div style="padding:10px 0;color:var(--text-muted);font-size:13px">لم توجد إجابة في المصدرين المعتمدَين</div>`;
   }
-  const cards = answers.map(a => `
+  return answers.map(a => `
     <div class="answer-card">
-      <div class="answer-source">${a['المصدر']||a.source||''}</div>
-      ${a['النص']||a.text||''}
-    </div>
-  `).join('');
-  return cards + `<div style="font-size:11px;color:var(--gold);margin-top:10px;font-style:italic">${khatima}</div>`;
+      <div class="answer-source">${a['المصدر']||''}</div>
+      ${a['الموضع'] ? `<div class="answer-locus">📍 ${a['الموضع']}</div>` : ''}
+      ${a['النص']||''}
+    </div>`).join('');
 }
 
+/* ===== البحث الرئيسي ===== */
 async function doSearch() {
   const query = document.getElementById('queryInput').value.trim();
   if (!query) return;
@@ -559,26 +533,40 @@ async function doSearch() {
   document.getElementById('errorBox').style.display = 'none';
   document.getElementById('results').style.display = 'none';
   document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('muhawaraThread').style.display = 'none';
 
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query})
     });
-
     if (!res.ok) throw new Error(`خطأ في الخادم: ${res.status}`);
     const data = await res.json();
-
     if (data.error) throw new Error(data.error);
 
-    document.getElementById('istinbat-body').innerHTML = renderIstinbat(data);
-    document.getElementById('tawil-body').innerHTML = renderTawil(data);
-    document.getElementById('istifsar-body').innerHTML = renderIstifsar(data);
+    const ist  = data['استنباط'] || {};
+    const taw  = data['تأويل']   || {};
+    const isf  = data['استفسار'] || {};
+
+    if (currentMode === 'istifsar') {
+      // وضع الاستفسار — يظهر الاستفسار فقط
+      document.getElementById('card-istinbat').style.display = 'none';
+      document.getElementById('card-tawil').style.display    = 'none';
+      document.getElementById('card-istifsar').style.display = 'block';
+      document.getElementById('istifsar-body').innerHTML = renderIstifsar(isf);
+    } else {
+      // وضع الاستنباط والتأويل
+      document.getElementById('card-istinbat').style.display = 'block';
+      document.getElementById('card-tawil').style.display    = 'block';
+      document.getElementById('card-istifsar').style.display = 'none';
+      document.getElementById('istinbat-body').innerHTML = renderIstinbat(ist);
+      document.getElementById('tawil-body').innerHTML    = renderTawil(taw);
+    }
 
     document.getElementById('results').style.display = 'block';
 
-  } catch (err) {
+  } catch(err) {
     const box = document.getElementById('errorBox');
     box.textContent = '⚠️ ' + err.message;
     box.style.display = 'block';
@@ -588,9 +576,72 @@ async function doSearch() {
   }
 }
 
-// Enter key support
+/* ===== المُحاوَرة ===== */
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function userBubble(t){
+  return `<div class="chat-msg"><div class="chat-label">🧑‍🏫 أنت</div>
+    <div class="bubble user">${esc(t)}</div></div>`;
+}
+function botBubble(t, sources){
+  let src = '';
+  if (sources && sources.length){
+    src = `<div class="chat-src"><div class="t">📍 المواضع في الكتابين</div>` +
+      sources.map(s => `<div class="chat-src-item">${esc(s['المصدر']||'')}${s['الموضع']?(' — '+esc(s['الموضع'])):''}</div>`).join('') +
+      `</div>`;
+  }
+  return `<div class="chat-msg"><div class="chat-label">❋ المحاوِر المؤصَّل</div>
+    <div class="bubble bot">${esc(t)}${src}</div></div>`;
+}
+function scrollBottom(){ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+
+async function sendMuhawara(){
+  const ta = document.getElementById('queryInput');
+  const text = ta.value.trim();
+  if (!text) return;
+
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  const thread = document.getElementById('muhawaraThread');
+  thread.style.display = 'block';
+
+  muhawaraHistory.push({role:'user', content:text});
+  thread.insertAdjacentHTML('beforeend', userBubble(text));
+  ta.value = '';
+
+  const tid = 'typing-' + Date.now();
+  thread.insertAdjacentHTML('beforeend', `<div class="typing" id="${tid}">… المحاوِر ينظر في الكتابين</div>`);
+  scrollBottom();
+  setLoading(true);
+
+  try {
+    const res = await fetch(API_MUHAWIR, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({messages: muhawaraHistory})
+    });
+    const data = await res.json().catch(() => ({error:'استجابة غير صالحة من الخادم'}));
+    document.getElementById(tid)?.remove();
+    if (!res.ok || data.error) throw new Error(data.error || ('خطأ في الخادم: ' + res.status));
+
+    const reply = data.reply || '(لم يردْ جواب)';
+    muhawaraHistory.push({role:'assistant', content:reply});
+    thread.insertAdjacentHTML('beforeend', botBubble(reply, data['المصادر'] || []));
+    scrollBottom();
+  } catch(err){
+    document.getElementById(tid)?.remove();
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + err.message;
+    box.style.display = 'block';
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Enter بـ Ctrl
 document.getElementById('queryInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.ctrlKey) doSearch();
+  if (e.key === 'Enter' && e.ctrlKey) onSubmit();
 });
 </script>
 </body>
