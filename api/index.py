@@ -373,13 +373,19 @@ def clean_light(text):
     text = re.sub(r"[ٰٖٓٗٙٚۡۥۦ]", "", text)
     return " ".join(text.split())
 
+# عتبة صلة الحديث الدنيا: عدد الكلمات الجوهرية التي يجب أن يطابقها الحديث.
+# ارفعها لتقليل الضوضاء، أو أنزِلها إلى 1 لو رأيت التقاط الأحاديث قليلاً.
+HADITH_MIN_SCORE = 2
+
 def search_hadith(q, sb):
     """البحث في الحديث مع ترتيب حسب الصلة وتنظيف المتن"""
     # نبحث بكلمات بلا تشكيل لكن مع إبقاء ة و ى لتطابق النص الأصلي
     q_light = clean_light(q)
     words = [w for w in q_light.split() if len(w) > 3][:6]
-    # نستبعد الكلمات الشائعة جداً
-    skip = {"الذين","الذي","التي","قوله","تعالى","وقال","فقال","الله","الذين"}
+    # نستبعد الكلمات الشائعة وكلمات تأطير السؤال (لا تدلّ على مضمونه)
+    skip = {"الذين","الذي","التي","قوله","تعالى","وقال","فقال","الله",
+            "حكم","الحكم","وحكم","معنى","المعنى","تعريف","بيان","ماهو","ماهي",
+            "لماذا","كيف","اذكر","هات","المسالة","مسالة","المؤلف","المؤلِّف"}
     words = [w for w in words if w not in skip]
     if not words:
         return []
@@ -410,11 +416,11 @@ def search_hadith(q, sb):
                             "score":  score
                         }
             except: pass
-    # ترتيب حسب أعلى صلة، ونشترط مطابقة كلمتين على الأقل لتقليل الضوضاء
+    # ترتيب حسب أعلى صلة، ونشترط عتبةَ صلةٍ دنيا (HADITH_MIN_SCORE)
+    # ولا نُرجع الضعيف عند غياب القويّ — فالخانة الفارغة أصدق من حديثٍ مُقحَم
     ranked = sorted(candidates.values(), key=lambda x: x["score"], reverse=True)
-    strong = [r for r in ranked if r["score"] >= 2]
-    result = strong if strong else ranked
-    return result[:3]
+    strong = [r for r in ranked if r["score"] >= HADITH_MIN_SCORE]
+    return strong[:3]
 
 # كلمات منهجية عامة تتكرر في مقدمات الكتابين — تُستبعد من ترجيح التخريج
 STOP_WORDS = {
@@ -432,8 +438,9 @@ def key_words(q):
     core = [w for w in words if w not in STOP_WORDS]
     return core if core else words
 
-def search_book_ranked(table, q, sb, top=1):
-    """بحث دقيق مرتّب حسب الصلة — يرجّح الكلمات الجوهرية ويجلب معلومات الفهرس"""
+def search_book_ranked(table, q, sb, top=1, strict=False):
+    """بحث دقيق مرتّب حسب الصلة — يرجّح الكلمات الجوهرية ويجلب معلومات الفهرس.
+    strict=True (للتخريج): لا يُقبل النص إلا بمطابقة العبارة تامّةً أو كلمتين متمايزتين."""
     qc = clean(q)
     words = [w for w in qc.split() if len(w) > 3]
     core  = key_words(q)
@@ -451,13 +458,19 @@ def search_book_ranked(table, q, sb, top=1):
         for row in resp_data:
             txt = str(row.get("text_ar",""))
             rc = clean(txt)
-            if qc in rc:
+            exact = qc in rc
+            # عدد الكلمات المتمايزة المطابقة (للبوّابة المحافِظة)
+            matched = sum(1 for w in set(words) if w in rc)
+            if exact:
                 score = 1000
             else:
                 core_score = sum(5 for w in core if w in rc)
                 gen_score  = sum(1 for w in words if w in rc and w not in core)
                 score = core_score + gen_score
                 if core_score <= 0:
+                    continue
+                # بوّابة التخريج: أسقِط ما لا يطابق إلا كلمةً واحدةً عابرة
+                if strict and matched < 2:
                     continue
             scored.append((score, {
                 "text":       txt[:450],
@@ -492,7 +505,7 @@ def fmt_index_label(item):
 
 def search_manjam(q, sb):
     """التخريج من كتاب منجم الأصول حصراً"""
-    res = search_book_ranked("manjam_al_usul", q, sb, top=1)
+    res = search_book_ranked("manjam_al_usul", q, sb, top=1, strict=True)
     if not res: return ""
     item = res[0]
     label = fmt_index_label(item)
@@ -501,7 +514,7 @@ def search_manjam(q, sb):
 
 def search_idah(q, sb):
     """التخريج من كتاب الإيضاح المحايد حصراً"""
-    res = search_book_ranked("idah_al_muhayid", q, sb, top=1)
+    res = search_book_ranked("idah_al_muhayid", q, sb, top=1, strict=True)
     if not res: return ""
     item = res[0]
     label = fmt_index_label(item)
