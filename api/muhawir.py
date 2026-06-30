@@ -28,6 +28,8 @@ ANTHROPIC_KEY  = os.environ.get("ANTHROPIC_API_KEY")
 MUHAWIR_MODEL  = os.environ.get("MUHAWIR_MODEL", "claude-opus-4-8")
 # مستوى الجهد: low أسرع وأوفر (مناسب للتجربة)، medium/high أعمق وأبطأ وأغلى
 MUHAWIR_EFFORT = os.environ.get("MUHAWIR_EFFORT", "low")
+# عنوان المنصّة نفسها لإعادة استعمال محرّك الاستنباط/التأويل (نقطة /api/index)
+SELF_BASE_URL  = os.environ.get("SELF_BASE_URL", "https://naqeeb-al-mathani.vercel.app")
 
 ANTHROPIC_URL     = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"
@@ -173,6 +175,98 @@ def build_grounding(sources):
     return "المادة المؤصِّلة (نصوص المؤلِّف من الكتابين):\n\n" + "\n\n".join(blocks)
 
 # ============================================================
+# الربط بمحرّكي الاستنباط والتأويل (المرحلة الثانية)
+# ============================================================
+# ألفاظٌ تدلّ على أنّ السؤال حكميٌّ، فتُستدعى عندها آلةُ الأحكام
+RULING_KEYWORDS = {
+    "حكم","الحكم","يجوز","جائز","الجواز","واجب","الوجوب","يجب","فرض","الفرض",
+    "حرام","التحريم","يحرم","مكروه","الكراهة","مباح","الاباحه","مندوب","الندب",
+    "مستحب","سنه","امر","الامر","نهي","النهي","تحل","يحل","عزيمه","رخصه","يكفر",
+}
+
+def looks_like_ruling(q):
+    """بوّابةٌ خفيفةٌ حتميّة: هل السؤال حكميٌّ يستدعي آلةَ الأحكام؟"""
+    qc = clean(q)
+    words = set(qc.split())
+    return bool(words & RULING_KEYWORDS)
+
+async def fetch_analysis(text):
+    """يُعيد استعمال محرّك الاستنباط/التأويل عبر نقطة /api/index — غير حاسم.
+    يُجري التحليل على النصّ الممرَّر، ويُعيد حصيلة الاستنباط والتأويل أو None."""
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            r = await client.post(f"{SELF_BASE_URL}/api/index", json={"query": text})
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        return {
+            "استنباط": data.get("استنباط", {}),
+            "تأويل":   data.get("تأويل", {}),
+        }
+    except Exception:
+        return None
+
+def build_analysis_card(analysis):
+    """يُجهّز بطاقةَ التحليل في صورتَين: نصٍّ موجزٍ للنموذج، وبنيةٍ مرتّبةٍ للعرض."""
+    if not analysis:
+        return None
+    ist = analysis.get("استنباط", {}) or {}
+    taw = analysis.get("تأويل", {}) or {}
+
+    fields = []
+    def add(label, val):
+        if val and str(val).strip() and str(val).strip() != "—":
+            fields.append((label, str(val).strip()))
+
+    # نأخذ السطر الأوّل من الأصول (العنوان) دون النصّ الكامل تفادياً للإطالة
+    usul = (ist.get("الأصول") or "").split("\n")[0]
+    add("الأصل", ist.get("الأصل"))
+    add("الأصول", usul)
+    furoo = ist.get("الفروع")
+    if isinstance(furoo, list): furoo = "، ".join(furoo)
+    add("الفروع", furoo)
+    add("الشعبة", ist.get("الشعبة"))
+    dabit = ist.get("الضابط")
+    if isinstance(dabit, list): dabit = "، ".join(dabit)
+    add("الضابط", dabit)
+    add("الحكم النظري", ist.get("الحكم_النظري"))
+    add("الحكم الضروري", ist.get("الحكم_الضروري"))
+
+    # الأروقة (إن كُشف اسمٌ من الأسماء الحسنى في النصّ المحلَّل)
+    names = taw.get("الأسماء_المكتشفة") or []
+    interp = taw.get("التأويل")
+    arwiqa = []
+    if names and isinstance(interp, list):
+        for n in interp:
+            arwiqa.append({
+                "الاسم":  n.get("الاسم", ""),
+                "الرواق": n.get("الرواق", ""),
+                "الباب":  n.get("الباب", ""),
+                "الركن":  n.get("الركن", ""),
+                "حكم_التحلي_التخلي": n.get("حكم_التحلي_التخلي", ""),
+            })
+
+    if not fields and not arwiqa:
+        return None
+
+    # نصٌّ موجزٌ للنموذج
+    lines = ["بطاقةُ التحليل المؤصَّل (أنتجها محرّكا الاستنباط والتأويل حتمياً من النصّ الأوثق صلةً؛ "
+             "استأنِسْ بها في تحرير الحكم ووفّق بينها وبين النصوص، فإن بدت غير ذات صلةٍ بالسؤال فأهمِلها):"]
+    for label, val in fields:
+        lines.append(f"- {label}: {val}")
+    for a in arwiqa:
+        seg = "، ".join(v for v in [a['الاسم'], a['الرواق'], a['الباب'], a['الركن']] if v)
+        if seg:
+            lines.append(f"- من الأروقة: {seg}")
+            if a["حكم_التحلي_التخلي"]:
+                lines.append(f"  · حكم التحلي/التخلي: {a['حكم_التحلي_التخلي']}")
+    card_text = "\n".join(lines)
+
+    # بنيةٌ مرتّبةٌ للعرض المطويّ
+    card_struct = {"حقول": [{"label": l, "value": v} for l, v in fields], "أروقة": arwiqa}
+    return {"text": card_text, "struct": card_struct}
+
+# ============================================================
 # استدعاء Claude
 # ============================================================
 async def call_claude(messages, grounding):
@@ -236,12 +330,24 @@ async def muhawir(request: Request):
         sb = get_supabase()
         sources   = gather_sources(query, sb)
         grounding = build_grounding(sources)
-        reply     = await call_claude(messages, grounding)
 
-        return JSONResponse({
+        # بطاقةُ التحليل: تُستدعى آلةُ الأحكام عند المسائل الحكميّة فقط (غير حاسمة)
+        card = None
+        if sources and looks_like_ruling(query):
+            analysis = await fetch_analysis(sources[0]["النص"])
+            card = build_analysis_card(analysis)
+            if card:
+                grounding += "\n\n" + card["text"]
+
+        reply = await call_claude(messages, grounding)
+
+        out = {
             "reply":   reply,
             "المصادر": sources,
             "خاتمة":   KHATIMA,
-        })
+        }
+        if card:
+            out["بطاقة_التحليل"] = card["struct"]
+        return JSONResponse(out)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
