@@ -267,14 +267,61 @@ def build_analysis_card(analysis):
     return {"text": card_text, "struct": card_struct}
 
 # ============================================================
+# تزويد المحاوِر بكامل الكتابين (المادة المؤصِّلة الكاملة)
+# ============================================================
+# صمّام أمان: إن تجاوز مجموع الكتابين هذا الحدّ من الأحرف، نعود إلى الجلب المنتقى
+# (تفادياً لتجاوز سعة السياق أو رسوم السياق الطويل فوق ٢٠٠ ألف رمز)
+BOOKS_CHAR_LIMIT = 480000
+
+def fetch_full_book(table, name, sb):
+    """يجلب كامل نصّ كتابٍ من قاعدة البيانات مع مواضعه (الباب/الضابط/الرواق)."""
+    if table == "manjam_al_usul":
+        cols = "text_ar,bab,dabit_text"
+    elif table == "idah_al_muhayid":
+        cols = "text_ar,bab,rwaq"
+    else:
+        cols = "text_ar"
+    rows = fetch_all(table, cols, sb)
+    parts = [f"════ {name} ════"]
+    for r in rows:
+        txt = str(r.get("text_ar", "")).strip()
+        if not txt:
+            continue
+        loc   = r.get("bab", "") or ""
+        extra = (r.get("dabit_text", "") or r.get("rwaq", "") or "")
+        label = " · ".join(x for x in [loc, extra] if x)
+        parts.append((f"[{label}]\n" if label else "") + txt)
+    return "\n\n".join(parts)
+
+def get_full_books(sb):
+    """يُعيد النصّ الكامل للكتابين معاً (المادة المؤصِّلة الكاملة)، أو None إن تعذّر/كبُر."""
+    try:
+        manjam = fetch_full_book("manjam_al_usul", "كتاب منجم الأصول", sb)
+        idah   = fetch_full_book("idah_al_muhayid", "كتاب الإيضاح المحايد", sb)
+        full = ("النصُّ الكاملُ لكتابَي المؤلِّف — هذه هي «المادة المؤصِّلة» كاملةً، "
+                "أجِبْ منها حصراً وأشِرْ إلى مواضعها:\n\n" + manjam + "\n\n" + idah)
+        if len(full) > BOOKS_CHAR_LIMIT:
+            return None  # كبُرت: نترك المعالِج يعود إلى الجلب المنتقى
+        return full
+    except Exception:
+        return None
+
+# ============================================================
 # استدعاء Claude
 # ============================================================
-async def call_claude(messages, grounding):
-    system_text = MANHAJ_SYSTEM + "\n\n" + grounding
+async def call_claude(messages, grounding, cache=True):
+    """يستدعي Claude. عند cache=True يُخزَّن نصُّ «grounding» مؤقّتاً (prompt caching)
+    فتَرخُص قراءتُه في الأسئلة التالية إلى نحو عُشر الثمن."""
+    system_blocks = [{"type": "text", "text": MANHAJ_SYSTEM}]
+    if grounding:
+        block = {"type": "text", "text": grounding}
+        if cache:
+            block["cache_control"] = {"type": "ephemeral"}
+        system_blocks.append(block)
     payload = {
         "model": MUHAWIR_MODEL,
         "max_tokens": 1500,
-        "system": system_text,
+        "system": system_blocks,
         "messages": messages,
         # مستوى الجهد — low للسرعة والتوفير. احذف هذا السطر لو أردت السلوك الافتراضي.
         "output_config": {"effort": MUHAWIR_EFFORT},
@@ -284,7 +331,7 @@ async def call_claude(messages, grounding):
         "anthropic-version": ANTHROPIC_VERSION,
         "content-type": "application/json",
     }
-    async with httpx.AsyncClient(timeout=55.0) as client:
+    async with httpx.AsyncClient(timeout=110.0) as client:
         r = await client.post(ANTHROPIC_URL, headers=headers, json=payload)
     if r.status_code != 200:
         # نُعيد رسالة الخطأ كما هي ليسهل تشخيصها أثناء التجربة
@@ -328,19 +375,23 @@ async def muhawir(request: Request):
         # السؤال الحالي = آخر رسالة مستخدم
         query = messages[-1]["content"]
         sb = get_supabase()
-        sources   = gather_sources(query, sb)
-        grounding = build_grounding(sources)
+        sources = gather_sources(query, sb)  # للعرض («المواضع») فقط
 
         # بطاقةُ التحليل: تُستدعى آلةُ الأحكام عند المسائل الحكميّة فقط (غير حاسمة)
-        # تُبنى من سؤال المستخدم نفسه ليطابق محرّك الاستنباط المستقلّ
         card = None
         if looks_like_ruling(query):
             analysis = await fetch_analysis(query)
             card = build_analysis_card(analysis)
             if card:
-                grounding += "\n\n" + card["text"]
+                # نضع البطاقة في رسالة المستخدم (لا في النظام) لئلا نكسر تخزينَ الكتابين
+                messages[-1]["content"] += "\n\n" + card["text"]
 
-        reply = await call_claude(messages, grounding)
+        # المادة المؤصِّلة: كامل الكتابين مع التخزين المؤقّت؛ وإلا عودةٌ آمنة للجلب المنتقى
+        full_books = get_full_books(sb)
+        if full_books:
+            reply = await call_claude(messages, full_books, cache=True)
+        else:
+            reply = await call_claude(messages, build_grounding(sources), cache=False)
 
         out = {
             "reply":   reply,
